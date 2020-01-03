@@ -34,9 +34,14 @@ namespace GTASim
 				public TimeSpan offset        = TimeSpan.Zero;
 				public float    speedMS       = -2.0f;
 				public float    steeringAngle = -2.0f;
+
+				public Keyframe ShallowCopy()
+				{
+					return (Keyframe)this.MemberwiseClone();
+				}
 			}
 
-			public List<Keyframe> keyframes;
+			public List<Keyframe> keyframes = new List<Keyframe>();
 		}
 
 		protected Status  status        = null;
@@ -48,9 +53,10 @@ namespace GTASim
 		protected float   speedBeforeDamage = 0.0f;
 		protected float   steerBeforeDamage = 0.0f;
 
-		protected DriveTimeline timeline      = null;
-		protected TimeSpan      timelineStart = TimeSpan.Zero;
-		protected int           timelineIndex = -1;
+		protected DriveTimeline timeline        = null;
+		protected DriveTimeline timelineFixed   = null;
+		protected TimeSpan      timelineStart   = TimeSpan.Zero;
+		protected int           timelineIndex   = -1;
 
 		public TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS)
 		{
@@ -124,35 +130,47 @@ namespace GTASim
 		{
 			if (IsStarted)
 			{
-				if (timeline.keyframes.Count > 0)
+				if (timelineFixed.keyframes.Count > 0)
 				{
 					var now     = World.CurrentTimeOfDay;
-					var elapsed = now - timelineStart;
+					var elapsed = (now - timelineStart).TotalSeconds;
 
-					if (timelineIndex < 0)
+					while (timelineIndex < timelineFixed.keyframes.Count)
 					{
-						//while ()
-						if (true)
-						{
-
-						}
-					}
-					else
-					{
-						while (true)
-						{
-							var key = timeline.keyframes[timelineIndex];
-							var dif = now - key.offset;
-						}
+						if (timelineFixed.keyframes[timelineIndex].offset.TotalSeconds > elapsed) break;
+						Apply(timelineFixed.keyframes[timelineIndex]);
+						++timelineIndex;
 					}
 				}
 			}
-
-			if (!vehicle.IsDamaged)
+			/*
+			else
 			{
-				vehicle.ForwardSpeed  = this.speedMS;
-				//vehicle.SteeringAngle = steeringAngle;
+				Speed         = speedMS;
+				SteeringAngle = steeringAngle;
 			}
+			*/
+		}
+
+		void FixTimeline()
+		{
+			TimeSpan current = TimeSpan.Zero;
+			timelineFixed = new DriveTimeline();
+			for (int i=0; i<timeline.keyframes.Count; ++i)
+			{
+				var key = timeline.keyframes[i];
+				if (key.offset.TotalSeconds < 0.0) continue;
+				//var fixedKey = key;
+				//fixedKey.offset += current;
+				//current = fixedKey.offset;
+				//timelineFixed.keyframes.Add(fixedKey);
+			}
+		}
+
+		void Apply(DriveTimeline.Keyframe key)
+		{
+			if (key.speedMS       > -2.0f) Speed         = key.speedMS;
+			if (key.steeringAngle > -2.0f) SteeringAngle = key.steeringAngle;
 		}
 
 		public void Update()
@@ -265,9 +283,14 @@ namespace GTASim
 		public bool Start(Vector3 position, float heading)
 		{
 			Stop();
+			FixTimeline();
+
 			Position      = position;
 			Heading       = heading;
+
 			timelineStart = World.CurrentTimeOfDay;
+			timelineIndex = 0;
+
 			return true;
 		}
 
@@ -279,15 +302,16 @@ namespace GTASim
 		public void Stop()
 		{
 			if (!IsStarted) return;
-			timelineStart = TimeSpan.Zero;
-			timelineIndex = -1;
-			Speed         = 0.0f;
-			SteeringAngle = 0.0f;
+			timelineFixed   = null;
+			timelineStart   = TimeSpan.Zero;
+			timelineIndex   = -1;
+			Speed           = 0.0f;
+			SteeringAngle   = 0.0f;
 		}
 
 		public bool IsStarted
 		{
-			get { return (timelineIndex < 0); }
+			get { return (timelineIndex >= 0); }
 		}
 	}
 }

@@ -28,8 +28,8 @@ public class GTATest : Script
 		traffic.Update();
 
 		{
-			int value = Game.GetControlValue(GTA.Control.LookLeftRight);
-			File.AppendAllText("sbuthre.txt", "value : " + value + "\n");
+			//int value = Game.GetControlValue(GTA.Control.LookLeftRight);
+			//File.AppendAllText("sbuthre.txt", "value : " + value + "\n");
 		}
 
 		if (false && traffic.DrivingVehicle != null)
@@ -85,13 +85,6 @@ public class GTATest : Script
 					float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
 
 					traffic.DrivingVehicle = new DrivingVehicle("stig", model, position, heading, true, maxSpeedMS);
-				}
-				break;
-
-			case Keys.NumPad1:
-				{
-					Vector3 position = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
-					float   heading  = Game.Player.Character.Heading + 0.0f;
 
 					/*
 					{
@@ -102,11 +95,36 @@ public class GTATest : Script
 						}
 					}
 					*/
+				}
+				break;
 
+			case Keys.NumPad1:
+				{
+					Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
+					float   heading    = Game.Player.Character.Heading + 0.0f;
 					Model   model      = VehicleHash.Futo;
 					float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
 
 					var vehicle = new TrafficVehicle("stupre", model, position, heading, true, maxSpeedMS);
+
+					vehicle.Timeline.keyframes.Add(null);
+
+					vehicle.Timeline.keyframes.Add(new TrafficVehicle.DriveTimeline.Keyframe
+					{
+						offset        = TimeSpan.Zero,
+						speedMS       = 70.0f * Constants.KMH_TO_MS,
+						steeringAngle = 0.0f
+					});
+
+					vehicle.Timeline.keyframes.Add(new TrafficVehicle.DriveTimeline.Keyframe
+					{
+						offset        = new TimeSpan(0, 0, 2),
+						speedMS       = 70.0f * Constants.KMH_TO_MS,
+						steeringAngle = -1.0f
+					});
+
+					vehicle.Start();
+
 					traffic.TrafficVehicles.Add(vehicle);
 				}
 				break;
@@ -114,32 +132,6 @@ public class GTATest : Script
 			case Keys.NumPad2:
 				{
 					traffic.Clear();
-				}
-				break;
-
-			case Keys.NumPad4:
-				{
-					float speedMS = 70.0f * Constants.KMH_TO_MS;
-					foreach (var vehicle in traffic.TrafficVehicles)
-					{
-						vehicle.Speed = speedMS;
-					}
-				}
-				break;
-
-			case Keys.NumPad5:
-				{
-					World.RenderingCamera = null;
-				}
-				break;
-
-			case Keys.NumPad7:
-				{
-					float angle = +1.0f;
-					foreach (var vehicle in traffic.TrafficVehicles)
-					{
-						vehicle.SteeringAngle = angle;
-					}
 				}
 				break;
 
