@@ -79,14 +79,12 @@ public class GTATest : Script
 			case Keys.NumPad0:
 				{
 					// vehicle
-					Model   model         = VehicleHash.Futo;
-					Vector3 position      = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 5.0f;
-					float   heading       = Game.Player.Character.Heading + 0.0f;
-					float   maxSpeedMS    = 150.0f * Constants.KMH_TO_MS;
-					float   curSpeedMS    =   0.0f * Constants.KMH_TO_MS;
-					float   steeringAngle = 0.0f;
+					Model   model      = VehicleHash.Futo;
+					Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 5.0f;
+					float   heading    = Game.Player.Character.Heading + 0.0f;
+					float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
 
-					traffic.DrivingVehicle = DrivingVehicle.Create("stig", model, position, heading, true, maxSpeedMS, curSpeedMS, steeringAngle);
+					traffic.DrivingVehicle = new DrivingVehicle("stig", model, position, heading, true, maxSpeedMS);
 				}
 				break;
 
@@ -107,9 +105,8 @@ public class GTATest : Script
 
 					Model   model      = VehicleHash.Futo;
 					float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
-					float   curSpeedMS =   0.0f * Constants.KMH_TO_MS;
 
-					var vehicle = TrafficVehicle.Create("stupre", model, position, heading, true, maxSpeedMS, curSpeedMS, 0.0f);
+					var vehicle = new TrafficVehicle("stupre", model, position, heading, true, maxSpeedMS);
 					traffic.TrafficVehicles.Add(vehicle);
 				}
 				break;

@@ -8,35 +8,27 @@ namespace GTASim
 	{
 		Camera camera;
 
-		public static DrivingVehicle Create(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS, float speedMS, float steeringAngle)
+		public DrivingVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS)
+			: base(name, model, position, heading, onStreet, maxSpeedMS)
 		{
-			var res = new DrivingVehicle(name, model, position, heading, onStreet, maxSpeedMS, speedMS, steeringAngle);
-			res.SetupDriver();
-			return res;
+			SetupDriver();
 		}
 
-		public static DrivingVehicle Create(Status status)
-		{
-			var res = new DrivingVehicle(status);
-			res.SetupDriver();
-			return res;
-		}
-
-		protected DrivingVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS, float speedMS, float steeringAngle)
-			: base(name, model, position, heading, onStreet, maxSpeedMS, speedMS, steeringAngle)
-		{
-			;
-		}
-
-		protected DrivingVehicle(Status status)
+		public DrivingVehicle(Status status)
 			: base(status)
 		{
-			;
+			SetupDriver();
 		}
 
-		protected override void SetupDriver()
+		private void SetupDriver()
 		{
-			Game.Player.Character.SetIntoVehicle(vehicle, VehicleSeat.Driver);
+			if (driver != null)
+			{
+				driver.Delete();
+				driver = null;
+			}
+			driver = Game.Player.Character;
+			driver.SetIntoVehicle(vehicle, VehicleSeat.Driver);
 		}
 
 		protected override void DoUpdate()

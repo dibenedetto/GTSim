@@ -76,9 +76,8 @@ namespace GTASim
 
 			if (positions.Count > 0)
 			{
-				const float fmax = 999999999999.9f;
-				Vector3 bmin = new Vector3(+fmax, +fmax, +fmax);
-				Vector3 bmax = new Vector3(-fmax, -fmax, -fmax);
+				Vector3 bmin = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+				Vector3 bmax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
 				foreach (var p in positions)
 				{

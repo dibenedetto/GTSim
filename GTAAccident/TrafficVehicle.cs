@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using GTA;
 using GTA.Math;
@@ -26,34 +27,36 @@ namespace GTASim
 			}
 		}
 
+		public class DriveTimeline
+		{
+			public class Keyframe
+			{
+				public TimeSpan offset        = TimeSpan.Zero;
+				public float    speedMS       = -2.0f;
+				public float    steeringAngle = -2.0f;
+			}
+
+			public List<Keyframe> keyframes;
+		}
+
 		protected Status  status        = null;
 		protected Vehicle vehicle       = null;
+		protected Ped     driver        = null;
 		protected float   speedMS       = 0.0f;
 		protected float   steeringAngle = 0.0f;
 
-		protected float   speedBeforDamage = 0.0f;
-		protected float   steerBeforDamage = 0.0f;
+		protected float   speedBeforeDamage = 0.0f;
+		protected float   steerBeforeDamage = 0.0f;
 
-		public static TrafficVehicle Create(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS, float speedMS, float steeringAngle)
+		protected DriveTimeline timeline      = null;
+		protected TimeSpan      timelineStart = TimeSpan.Zero;
+		protected int           timelineIndex = -1;
+
+		public TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS)
 		{
-			var res = new TrafficVehicle(name, model, position, heading, onStreet, maxSpeedMS, speedMS, steeringAngle);
-			res.SetupDriver();
-			return res;
-		}
-
-		public static TrafficVehicle Create(Status status)
-		{
-			var res = new TrafficVehicle(status);
-			res.SetupDriver();
-			return res;
-		}
-
-		protected TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS, float speedMS, float steeringAngle)
-		{
-			const float MAX_SPEED_FACTOR = 0.999f;
-
 			var adjustedMaxSpeedMS     = Constants.MAX_SPEED_FRICTION_FACTOR * maxSpeedMS;
-			var adjustedCurrentSpeedMS = Math.Min(Constants.MAX_SPEED_FRICTION_FACTOR * speedMS, adjustedMaxSpeedMS * MAX_SPEED_FACTOR);
+			var adjustedCurrentSpeedMS = 0.0f;
+			var steeringAngle          = 0.0f;
 
 			vehicle = World.CreateVehicle(model, position, heading);
 			vehicle.PlaceOnGround();
@@ -81,7 +84,7 @@ namespace GTASim
 			Initialize();
 		}
 
-		protected TrafficVehicle(Status status)
+		public TrafficVehicle(Status status)
 		{
 			this.status = status.ShallowCopy();
 
@@ -97,8 +100,19 @@ namespace GTASim
 			Speed         = status.speedMS;
 			SteeringAngle = status.steeringAngle;
 
-			speedBeforDamage = Speed;
-			steerBeforDamage = SteeringAngle;
+			speedBeforeDamage = Speed;
+			steerBeforeDamage = SteeringAngle;
+
+			driver = vehicle.CreateRandomPedOnSeat(VehicleSeat.Driver);
+
+			/*
+			driver.DrivingSpeed = 10.0f;
+			driver.DrivingStyle = DrivingStyle.Rushed;
+			driver.MaxDrivingSpeed = 10.0f;
+			driver.VehicleDrivingFlags = VehicleDrivingFlags.
+			*/
+
+			timeline = new DriveTimeline();
 		}
 
 		public void Delete()
@@ -106,13 +120,34 @@ namespace GTASim
 			vehicle.Delete();
 		}
 
-		protected virtual void SetupDriver()
-		{
-			vehicle.CreateRandomPedOnSeat(VehicleSeat.Driver);
-		}
-
 		protected virtual void DoUpdate()
 		{
+			if (IsStarted)
+			{
+				if (timeline.keyframes.Count > 0)
+				{
+					var now     = World.CurrentTimeOfDay;
+					var elapsed = now - timelineStart;
+
+					if (timelineIndex < 0)
+					{
+						//while ()
+						if (true)
+						{
+
+						}
+					}
+					else
+					{
+						while (true)
+						{
+							var key = timeline.keyframes[timelineIndex];
+							var dif = now - key.offset;
+						}
+					}
+				}
+			}
+
 			if (!vehicle.IsDamaged)
 			{
 				vehicle.ForwardSpeed  = this.speedMS;
@@ -122,13 +157,13 @@ namespace GTASim
 
 		public void Update()
 		{
-			DoUpdate();
-
 			if (!vehicle.IsDamaged)
 			{
-				speedBeforDamage = Speed;
-				steerBeforDamage = SteeringAngle;
+				speedBeforeDamage = Speed;
+				steerBeforeDamage = SteeringAngle;
 			}
+
+			DoUpdate();
 		}
 
 		public string Log()
@@ -143,7 +178,8 @@ namespace GTASim
 
 		public Vector3 Position
 		{
-			get { return vehicle.Position; }
+			get { return vehicle.Position;  }
+			set { vehicle.Position = value; }
 		}
 
 		public Quaternion Quaternion
@@ -153,7 +189,8 @@ namespace GTASim
 
 		public float Heading
 		{
-			get { return vehicle.Heading; }
+			get { return vehicle.Heading;  }
+			set { vehicle.Heading = value; }
 		}
 
 		public Vector3 Velocity
@@ -167,8 +204,11 @@ namespace GTASim
 
 			set
 			{
-				speedMS              = value;
-				vehicle.ForwardSpeed = value;
+				if (!vehicle.IsDamaged)
+				{
+					speedMS              = value;
+					vehicle.ForwardSpeed = value;
+				}
 			}
 		}
 
@@ -178,8 +218,11 @@ namespace GTASim
 
 			set
 			{
-				steeringAngle         = value;
-				vehicle.SteeringAngle = value;
+				if (!vehicle.IsDamaged)
+				{
+					steeringAngle         = value;
+					vehicle.SteeringAngle = value;
+				}
 			}
 		}
 
@@ -211,6 +254,40 @@ namespace GTASim
 		public float Damage
 		{
 			get { return (1.0f - Healt); }
+		}
+
+		public DriveTimeline Timeline
+		{
+			get { return timeline;  }
+			set { timeline = value; }
+		}
+
+		public bool Start(Vector3 position, float heading)
+		{
+			Stop();
+			Position      = position;
+			Heading       = heading;
+			timelineStart = World.CurrentTimeOfDay;
+			return true;
+		}
+
+		public bool Start()
+		{
+			return Start(vehicle.Position, vehicle.Heading);
+		}
+
+		public void Stop()
+		{
+			if (!IsStarted) return;
+			timelineStart = TimeSpan.Zero;
+			timelineIndex = -1;
+			Speed         = 0.0f;
+			SteeringAngle = 0.0f;
+		}
+
+		public bool IsStarted
+		{
+			get { return (timelineIndex < 0); }
 		}
 	}
 }
