@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 using GTA;
 using GTA.Math;
@@ -27,21 +28,16 @@ namespace GTASim
 			}
 		}
 
-		public class DriveTimeline
+		public class Keyframe
 		{
-			public class Keyframe
+			public TimeSpan offset        = TimeSpan.Zero;
+			public float    speedMS       = -2.0f;
+			public float    steeringAngle = -2.0f;
+
+			public Keyframe ShallowCopy()
 			{
-				public TimeSpan offset        = TimeSpan.Zero;
-				public float    speedMS       = -2.0f;
-				public float    steeringAngle = -2.0f;
-
-				public Keyframe ShallowCopy()
-				{
-					return (Keyframe)this.MemberwiseClone();
-				}
+				return (Keyframe)this.MemberwiseClone();
 			}
-
-			public List<Keyframe> keyframes = new List<Keyframe>();
 		}
 
 		protected Status  status        = null;
@@ -53,10 +49,11 @@ namespace GTASim
 		protected float   speedBeforeDamage = 0.0f;
 		protected float   steerBeforeDamage = 0.0f;
 
-		protected DriveTimeline timeline        = null;
-		protected DriveTimeline timelineFixed   = null;
-		protected TimeSpan      timelineStart   = TimeSpan.Zero;
-		protected int           timelineIndex   = -1;
+		protected List<Keyframe> timeline      = null;
+		protected List<Keyframe> timelineFixed = null;
+		protected TimeSpan       timelineStart = TimeSpan.Zero;
+		protected int            timelineIndex = -1;
+		protected double         timeFactor    = 1.0;
 
 		public TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS)
 		{
@@ -118,7 +115,7 @@ namespace GTASim
 			driver.VehicleDrivingFlags = VehicleDrivingFlags.
 			*/
 
-			timeline = new DriveTimeline();
+			timeline = new List<Keyframe>();
 		}
 
 		public void Delete()
@@ -128,19 +125,15 @@ namespace GTASim
 
 		protected virtual void DoUpdate()
 		{
-			if (IsStarted)
+			if (IsStarted && (timelineFixed.Count > 0) && (timelineIndex < timelineFixed.Count))
 			{
-				if (timelineFixed.keyframes.Count > 0)
+				var now     = World.CurrentTimeOfDay;
+				var elapsed = (now - timelineStart).TotalSeconds * timeFactor;
+				while (timelineIndex < timelineFixed.Count)
 				{
-					var now     = World.CurrentTimeOfDay;
-					var elapsed = (now - timelineStart).TotalSeconds;
-
-					while (timelineIndex < timelineFixed.keyframes.Count)
-					{
-						if (timelineFixed.keyframes[timelineIndex].offset.TotalSeconds > elapsed) break;
-						Apply(timelineFixed.keyframes[timelineIndex]);
-						++timelineIndex;
-					}
+					if (timelineFixed[timelineIndex].offset.TotalSeconds > elapsed) break;
+					Apply(timelineFixed[timelineIndex]);
+					++timelineIndex;
 				}
 			}
 			/*
@@ -155,19 +148,21 @@ namespace GTASim
 		void FixTimeline()
 		{
 			TimeSpan current = TimeSpan.Zero;
-			timelineFixed = new DriveTimeline();
-			for (int i=0; i<timeline.keyframes.Count; ++i)
+			timelineFixed = new List<Keyframe>();
+			for (int i=0; i<timeline.Count; ++i)
 			{
-				var key = timeline.keyframes[i];
+				var key = timeline[i];
 				if (key.offset.TotalSeconds < 0.0) continue;
-				//var fixedKey = key;
-				//fixedKey.offset += current;
-				//current = fixedKey.offset;
-				//timelineFixed.keyframes.Add(fixedKey);
+				var fixedKey = key;
+				fixedKey.offset += current;
+				current = fixedKey.offset;
+				timelineFixed.Add(fixedKey);
 			}
+
+			timeFactor = ((double)(Function.Call<int>(Hash.GET_MILLISECONDS_PER_GAME_MINUTE))) / (1000.0 * 60.0);
 		}
 
-		void Apply(DriveTimeline.Keyframe key)
+		void Apply(Keyframe key)
 		{
 			if (key.speedMS       > -2.0f) Speed         = key.speedMS;
 			if (key.steeringAngle > -2.0f) SteeringAngle = key.steeringAngle;
@@ -274,7 +269,7 @@ namespace GTASim
 			get { return (1.0f - Healt); }
 		}
 
-		public DriveTimeline Timeline
+		public List<Keyframe> Timeline
 		{
 			get { return timeline;  }
 			set { timeline = value; }

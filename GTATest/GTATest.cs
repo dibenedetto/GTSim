@@ -107,16 +107,14 @@ public class GTATest : Script
 
 					var vehicle = new TrafficVehicle("stupre", model, position, heading, true, maxSpeedMS);
 
-					vehicle.Timeline.keyframes.Add(null);
-
-					vehicle.Timeline.keyframes.Add(new TrafficVehicle.DriveTimeline.Keyframe
+					vehicle.Timeline.Add(new TrafficVehicle.Keyframe
 					{
 						offset        = TimeSpan.Zero,
 						speedMS       = 70.0f * Constants.KMH_TO_MS,
 						steeringAngle = 0.0f
 					});
 
-					vehicle.Timeline.keyframes.Add(new TrafficVehicle.DriveTimeline.Keyframe
+					vehicle.Timeline.Add(new TrafficVehicle.Keyframe
 					{
 						offset        = new TimeSpan(0, 0, 2),
 						speedMS       = 70.0f * Constants.KMH_TO_MS,
