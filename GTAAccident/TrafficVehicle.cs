@@ -18,8 +18,8 @@ namespace GTASim
 			public float  positionY     = 0.0f;
 			public float  positionZ     = 0.0f;
 			public float  heading       = 0.0f;
-			public float  maxSpeedMS    = 0.0f;
-			public float  speedMS       = 0.0f;
+			public float  maxSpeed      = 0.0f;
+			public float  speed         = 0.0f;
 			public float  steeringAngle = 0.0f;
 
 			public Status ShallowCopy()
@@ -31,7 +31,7 @@ namespace GTASim
 		public class Keyframe
 		{
 			public TimeSpan offset        = TimeSpan.Zero;
-			public float    speedMS       = -2.0f;
+			public float    speed         = -2.0f;
 			public float    steeringAngle = -2.0f;
 
 			public Keyframe ShallowCopy()
@@ -43,7 +43,7 @@ namespace GTASim
 		protected Status  status        = null;
 		protected Vehicle vehicle       = null;
 		protected Ped     driver        = null;
-		protected float   speedMS       = 0.0f;
+		protected float   speed         = 0.0f;
 		protected float   steeringAngle = 0.0f;
 
 		protected float   speedBeforeDamage = 0.0f;
@@ -55,11 +55,11 @@ namespace GTASim
 		protected int            timelineIndex = -1;
 		protected double         timeFactor    = 1.0;
 
-		public TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS)
+		public TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeed)
 		{
-			var adjustedMaxSpeedMS     = Constants.MAX_SPEED_FRICTION_FACTOR * maxSpeedMS;
-			var adjustedCurrentSpeedMS = 0.0f;
-			var steeringAngle          = 0.0f;
+			var adjustedMaxSpeed     = Constants.MAX_SPEED_FRICTION_FACTOR * maxSpeed;
+			var adjustedCurrentSpeed = 0.0f;
+			var steeringAngle        = 0.0f;
 
 			vehicle = World.CreateVehicle(model, position, heading);
 			vehicle.PlaceOnGround();
@@ -79,8 +79,8 @@ namespace GTASim
 				positionY     = vehicle.Position.Y,
 				positionZ     = vehicle.Position.Z,
 				heading       = vehicle.Heading,
-				maxSpeedMS    = adjustedMaxSpeedMS,
-				speedMS       = adjustedCurrentSpeedMS,
+				maxSpeed      = adjustedMaxSpeed,
+				speed         = adjustedCurrentSpeed,
 				steeringAngle = steeringAngle
 			};
 
@@ -99,8 +99,8 @@ namespace GTASim
 
 		void Initialize()
 		{
-			Function.Call(Hash._SET_VEHICLE_MAX_SPEED, vehicle.Handle, status.maxSpeedMS);
-			Speed         = status.speedMS;
+			Function.Call(Hash._SET_VEHICLE_MAX_SPEED, vehicle.Handle, status.maxSpeed);
+			Speed         = status.speed;
 			SteeringAngle = status.steeringAngle;
 
 			speedBeforeDamage = Speed;
@@ -120,29 +120,11 @@ namespace GTASim
 
 		public void Delete()
 		{
+			if (driver != Game.Player.Character)
+			{
+				driver.Delete();
+			}
 			vehicle.Delete();
-		}
-
-		protected virtual void DoUpdate()
-		{
-			if (IsStarted && (timelineFixed.Count > 0) && (timelineIndex < timelineFixed.Count))
-			{
-				var now     = World.CurrentTimeOfDay;
-				var elapsed = (now - timelineStart).TotalSeconds * timeFactor;
-				while (timelineIndex < timelineFixed.Count)
-				{
-					if (timelineFixed[timelineIndex].offset.TotalSeconds > elapsed) break;
-					Apply(timelineFixed[timelineIndex]);
-					++timelineIndex;
-				}
-			}
-			/*
-			else
-			{
-				Speed         = speedMS;
-				SteeringAngle = steeringAngle;
-			}
-			*/
 		}
 
 		void FixTimeline()
@@ -164,19 +146,41 @@ namespace GTASim
 
 		void Apply(Keyframe key)
 		{
-			if (key.speedMS       > -2.0f) Speed         = key.speedMS;
-			if (key.steeringAngle > -2.0f) SteeringAngle = key.steeringAngle;
+			if (key.speed         >=  0.0f) Speed         = key.speed;
+			if (key.steeringAngle >= -1.0f) SteeringAngle = key.steeringAngle;
 		}
 
-		public void Update()
+		protected virtual void DoUpdate(TimeSpan now)
 		{
-			if (!vehicle.IsDamaged)
+			bool applied = false;
+			if (IsStarted && (timelineFixed.Count > 0) && (timelineIndex < timelineFixed.Count))
+			{
+				var elapsed = (now - timelineStart).TotalSeconds * timeFactor;
+				while (timelineIndex < timelineFixed.Count)
+				{
+					if (timelineFixed[timelineIndex].offset.TotalSeconds > elapsed) break;
+					Apply(timelineFixed[timelineIndex]);
+					applied = true;
+					++timelineIndex;
+				}
+			}
+
+			if (!applied)
+			{
+				Speed         = speed;
+				SteeringAngle = steeringAngle;
+			}
+		}
+
+		public void Update(TimeSpan now)
+		{
+			if (!IsDamaged)
 			{
 				speedBeforeDamage = Speed;
 				steerBeforeDamage = SteeringAngle;
 			}
 
-			DoUpdate();
+			DoUpdate(now);
 		}
 
 		public string Log()
@@ -187,6 +191,11 @@ namespace GTASim
 		public string Name
 		{
 			get { return status.name; }
+		}
+
+		public Vehicle Vehicle
+		{
+			get { return vehicle; }
 		}
 
 		public Vector3 Position
@@ -217,9 +226,9 @@ namespace GTASim
 
 			set
 			{
-				if (!vehicle.IsDamaged)
+				if (!IsDamaged)
 				{
-					speedMS              = value;
+					speed                = value;
 					vehicle.ForwardSpeed = value;
 				}
 			}
@@ -231,7 +240,7 @@ namespace GTASim
 
 			set
 			{
-				if (!vehicle.IsDamaged)
+				if (!IsDamaged)
 				{
 					steeringAngle         = value;
 					vehicle.SteeringAngle = value;
@@ -269,32 +278,39 @@ namespace GTASim
 			get { return (1.0f - Healt); }
 		}
 
+		public bool IsDamaged
+		{
+			get { return (vehicle.IsDamaged || (Damage > 0.0f)); }
+		}
+
 		public List<Keyframe> Timeline
 		{
 			get { return timeline;  }
 			set { timeline = value; }
 		}
 
-		public bool Start(Vector3 position, float heading)
+		public bool Start(Vector3 position, float heading, TimeSpan now)
 		{
-			Stop();
+			Stop(now);
 			FixTimeline();
 
 			Position      = position;
 			Heading       = heading;
 
-			timelineStart = World.CurrentTimeOfDay;
+			timelineStart = now;
 			timelineIndex = 0;
 
 			return true;
 		}
 
-		public bool Start()
+		public bool Start(TimeSpan now, bool restoreState = true)
 		{
-			return Start(vehicle.Position, vehicle.Heading);
+			Vector3 position = ((restoreState) ? (new Vector3(status.positionX, status.positionY, status.positionZ)) : (vehicle.Position));
+			float   heading  = ((restoreState) ? (status.heading                                                   ) : (vehicle.Heading ));
+			return Start(vehicle.Position, vehicle.Heading, now);
 		}
 
-		public void Stop()
+		public void Stop(TimeSpan now)
 		{
 			if (!IsStarted) return;
 			timelineFixed   = null;

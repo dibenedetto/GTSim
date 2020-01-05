@@ -11,7 +11,7 @@ namespace GTASim
 		private const int MAX_STEPS_PER_EPISODE = 1000;
 
 		private float   actionValue = 0.0f;
-		private Vehicle vehicle     = null;
+		private Traffic traffic     = null;
 
 		public GTAAccident(int framesCount, float framesPerSecond, float timeScale)
 			: base(framesCount, framesPerSecond, timeScale, MAX_STEPS_PER_EPISODE)
@@ -55,24 +55,7 @@ namespace GTASim
 
 		protected override void InitializeEpisode()
 		{
-			// vehicle
-			Model   model    = VehicleHash.Adder;
-			Vector3 position = new Vector3(0.0f, 0.0f, 0.0f);
-			float   heading  = 0.0f;
-			vehicle = World.CreateVehicle(model, position, heading);
-			vehicle.ForwardSpeed = 28.0f;
-
-			// camera
-			World.DestroyAllCameras();
-			var camera = World.RenderingCamera;
-			camera.AttachTo(vehicle, Vector3.Zero);
-
-			// test scenarios
-			/*
-			 * ...
-			 * 
-			*/
-
+			traffic.InitializeRandomEpisode();
 		}
 
 		protected override void PerformAction(Action action)
@@ -125,6 +108,8 @@ namespace GTASim
 		{
 			const float actionFactor = -0.1f;
 			const float damageFactor = -1.0f;
+
+			var vehicle = traffic.DrivingVehicle.Vehicle;
 
 			float damageValue = ((vehicle.MaxHealthFloat - vehicle.HealthFloat) / vehicle.MaxHealthFloat);
 			float reward      = actionFactor * actionValue + damageFactor * damageValue;

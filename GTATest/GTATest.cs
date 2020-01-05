@@ -79,51 +79,18 @@ public class GTATest : Script
 			case Keys.NumPad0:
 				{
 					// vehicle
-					Model   model      = VehicleHash.Futo;
-					Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 5.0f;
-					float   heading    = Game.Player.Character.Heading + 0.0f;
-					float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
+					Model   model    = VehicleHash.Futo;
+					Vector3 position = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 5.0f;
+					float   heading  = Game.Player.Character.Heading + 0.0f;
+					float   maxSpeed = 150.0f * Constants.KMH_TO_MS;
 
-					traffic.DrivingVehicle = new DrivingVehicle("stig", model, position, heading, true, maxSpeedMS);
-
-					/*
-					{
-						var pos = Game.Player.Character.Position;
-						unsafe
-						{
-							Function.Call(Hash.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING, pos.X, pos.Y, pos.Z, &position, &heading, 0, 0, 0);
-						}
-					}
-					*/
+					traffic.DrivingVehicle = new DrivingVehicle("stig", model, position, heading, true, maxSpeed);
 				}
 				break;
 
 			case Keys.NumPad1:
 				{
-					Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
-					float   heading    = Game.Player.Character.Heading + 0.0f;
-					Model   model      = VehicleHash.Futo;
-					float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
-
-					var vehicle = new TrafficVehicle("stupre", model, position, heading, true, maxSpeedMS);
-
-					vehicle.Timeline.Add(new TrafficVehicle.Keyframe
-					{
-						offset        = TimeSpan.Zero,
-						speedMS       = 70.0f * Constants.KMH_TO_MS,
-						steeringAngle = 0.0f
-					});
-
-					vehicle.Timeline.Add(new TrafficVehicle.Keyframe
-					{
-						offset        = new TimeSpan(0, 0, 2),
-						speedMS       = 70.0f * Constants.KMH_TO_MS,
-						steeringAngle = -1.0f
-					});
-
-					vehicle.Start();
-
-					traffic.TrafficVehicles.Add(vehicle);
+					traffic.InitializeRandomEpisode();
 				}
 				break;
 
@@ -133,9 +100,15 @@ public class GTATest : Script
 				}
 				break;
 
-			case Keys.NumPad9:
+			case Keys.NumPad4:
 				{
-					traffic.ActivateGameCamera();
+					traffic.Start();
+				}
+				break;
+
+			case Keys.NumPad5:
+				{
+					traffic.Stop();
 				}
 				break;
 
