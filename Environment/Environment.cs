@@ -10,13 +10,14 @@ namespace GTASim
 		private Result                   result              = null;
 		private bool                     resetDone           = false;
 
+		private int                      maxStepsPerEpisode  = 0;
 		private int                      episodesCount       = 0;
 		private int                      totalEpisodesSteps  = 0;
 		private int                      currentEpisodeSteps = 0;
 
-		public Environment()
+		public Environment(int maxStepsPerEpisode)
 		{
-			;
+			this.maxStepsPerEpisode = maxStepsPerEpisode;
 		}
 
 		public List<State.Descriptor> StateDescriptors
@@ -27,6 +28,11 @@ namespace GTASim
 		public List<Action.Descriptor> ActionDescriptors
 		{
 			get { return actionDescriptors; }
+		}
+
+		public int MaxStepsPerEpisode
+		{
+			get { return maxStepsPerEpisode; }
 		}
 
 		public int EpisodesCount
