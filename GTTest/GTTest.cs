@@ -10,21 +10,17 @@ using GTA.Native;
 
 using GTSim;
 
-public class GTTest : Script
+public class GTTest : GTScript
 {
-	Traffic        traffic    = null;
-	TimeController controller = null;
+	public override void Implementable() { }
 
 	public GTTest()
+		: base(8080, new GTAccident(5.0f, 10.0f, 4))
 	{
-		this.Tick    += OnTick   ;
-		this.KeyDown += OnKeyDown;
-		this.KeyUp   += OnKeyUp  ;
-
-		traffic    = new Traffic();
-		controller = new TimeController();
+		;
 	}
 
+	/*
 	public void OnTick(object sender, EventArgs e)
 	{
 		traffic.Update();
@@ -146,4 +142,5 @@ public class GTTest : Script
 				break;
 		}
 	}
+	*/
 }

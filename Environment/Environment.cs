@@ -56,10 +56,19 @@ namespace GTSim
 			get { return result; }
 		}
 
+		public void Restart()
+		{
+			result              = null;
+			resetDone           = false;
+			episodesCount       = 0;
+			totalEpisodesSteps  = 0;
+			currentEpisodeSteps = 0;
+		}
+
 		public Result Reset()
 		{
 			++episodesCount;
-			currentEpisodeSteps = 1;
+			currentEpisodeSteps = 0;
 
 			var prevResult = result;
 

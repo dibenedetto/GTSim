@@ -12,17 +12,17 @@ namespace GTSim
 		private float          framesPerSecond      = 0.0f;
 		private int            recordedFramesCount  = 0;
 		private float          waitTime             = 0.0f;
-		private int            width                = 0;
-		private int            height               = 0;
 		private TimeController controller           = null;
 		private List<float[]>  frames               = null;
+		private int            width                = 0;
+		private int            height               = 0;
 
-		public GTEnvironment(float maxSecondsPerEpisode, int recordedFramesCount, float framesPerSecond)
+		public GTEnvironment(float maxSecondsPerEpisode, float framesPerSecond, int recordedFramesCount)
 			: base((int)(Math.Ceiling(maxSecondsPerEpisode * framesPerSecond)))
 		{
 			this.maxSecondsPerEpisode = maxSecondsPerEpisode;
-			this.recordedFramesCount  = recordedFramesCount;
 			this.framesPerSecond      = framesPerSecond;
+			this.recordedFramesCount  = recordedFramesCount;
 			this.waitTime             = 1.0f / framesPerSecond;
 			this.controller           = new TimeController();
 			this.frames               = new List<float[]>();
@@ -85,7 +85,11 @@ namespace GTSim
 
 		private void UpdateFrames()
 		{
-			if (recordedFramesCount <= 0) return;
+			if (recordedFramesCount <= 0)
+			{
+				controller.Run(waitTime);
+				return;
+			}
 			frames.RemoveAt(0);
 			AcquireFrames(1);
 		}
