@@ -11,8 +11,8 @@ namespace GTSim
 		private float   actionValue = 0.0f;
 		private Traffic traffic     = null;
 
-		public GTAccident(int maxStepsPerEpisode, int recorderFramesCount, float framesPerSecond)
-			: base(maxStepsPerEpisode, recorderFramesCount, framesPerSecond)
+		public GTAccident(float maxSecondsPerEpisode, int recorderFramesCount, float framesPerSecond)
+			: base(maxSecondsPerEpisode, recorderFramesCount, framesPerSecond)
 		{
 			// states
 			/////////////////////////////////////////////////////

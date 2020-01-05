@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace GTSim
 {
@@ -17,7 +18,7 @@ namespace GTSim
 
 		public Environment(int maxStepsPerEpisode)
 		{
-			this.maxStepsPerEpisode = maxStepsPerEpisode;
+			this.maxStepsPerEpisode = Math.Max(1, maxStepsPerEpisode);
 		}
 
 		public List<State.Descriptor> StateDescriptors
@@ -58,7 +59,7 @@ namespace GTSim
 		public Result Reset()
 		{
 			++episodesCount;
-			currentEpisodeSteps = 0;
+			currentEpisodeSteps = 1;
 
 			var prevResult = result;
 

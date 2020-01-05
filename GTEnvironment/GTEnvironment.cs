@@ -8,22 +8,24 @@ namespace GTSim
 {
 	public class GTEnvironment : GTSim.Environment
 	{
-		private float          framesPerSecond     = 0.0f;
-		private int            recordedFramesCount = 0;
-		private float          waitTime            = 0.0f;
-		private int            width               = 0;
-		private int            height              = 0;
-		private TimeController controller          = null;
-		private List<float[]>  frames              = null;
+		private float          maxSecondsPerEpisode = 0.0f;
+		private float          framesPerSecond      = 0.0f;
+		private int            recordedFramesCount  = 0;
+		private float          waitTime             = 0.0f;
+		private int            width                = 0;
+		private int            height               = 0;
+		private TimeController controller           = null;
+		private List<float[]>  frames               = null;
 
-		public GTEnvironment(int maxStepsPerEpisode, int recordedFramesCount, float framesPerSecond)
-			: base(maxStepsPerEpisode)
+		public GTEnvironment(float maxSecondsPerEpisode, int recordedFramesCount, float framesPerSecond)
+			: base((int)(Math.Ceiling(maxSecondsPerEpisode * framesPerSecond)))
 		{
-			this.recordedFramesCount = recordedFramesCount;
-			this.framesPerSecond     = framesPerSecond;
-			this.waitTime            = 1.0f / framesPerSecond;
-			this.controller          = new TimeController();
-			this.frames              = new List<float[]>();
+			this.maxSecondsPerEpisode = maxSecondsPerEpisode;
+			this.recordedFramesCount  = recordedFramesCount;
+			this.framesPerSecond      = framesPerSecond;
+			this.waitTime             = 1.0f / framesPerSecond;
+			this.controller           = new TimeController();
+			this.frames               = new List<float[]>();
 
 			ExternalSceneMaskSize(out width, out height);
 
@@ -41,6 +43,11 @@ namespace GTSim
 				});
 			}
 			/////////////////////////////////////////////////////
+		}
+
+		public float MaxSecondsPerEpisode
+		{
+			get { return maxSecondsPerEpisode; }
 		}
 
 		public int RecordedFramesCount
