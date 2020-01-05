@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace GTASim
+namespace GTSim
 {
 	public class Environment
 	{

@@ -8,14 +8,14 @@ using GTA;
 using GTA.Math;
 using GTA.Native;
 
-using GTASim;
+using GTSim;
 
-public class GTATest : Script
+public class GTTest : Script
 {
 	Traffic        traffic    = null;
 	TimeController controller = null;
 
-	public GTATest()
+	public GTTest()
 	{
 		this.Tick    += OnTick   ;
 		this.KeyDown += OnKeyDown;

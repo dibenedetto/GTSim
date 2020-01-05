@@ -4,7 +4,7 @@ using GTA;
 using GTA.Math;
 using GTA.Native;
 
-namespace GTASim
+namespace GTSim
 {
 	public class DrivingVehicle : TrafficVehicle
 	{

@@ -56,7 +56,7 @@
       <Project>{63426227-456f-43bd-a3d0-f830d73ee23d}</Project>
       <Name>Environment</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GTAEnvironment\GTEnvironment.csproj">
+    <ProjectReference Include="..\GTEnvironment\GTEnvironment.csproj">
       <Project>{9fa9cd65-3047-4394-992d-fde469f8b264}</Project>
       <Name>GTEnvironment</Name>
     </ProjectReference>

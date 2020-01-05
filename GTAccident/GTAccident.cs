@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using GTA;
 using GTA.Math;
 
-namespace GTASim
+namespace GTSim
 {
 	public class GTAccident : GTEnvironment
 	{

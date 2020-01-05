@@ -1,4 +1,4 @@
-﻿namespace GTASim
+﻿namespace GTSim
 {
 	public class Item
 	{

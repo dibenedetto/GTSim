@@ -4,13 +4,12 @@ using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
 
-namespace GTASim
+namespace GTSim
 {
-	public class GTEnvironment : GTASim.Environment
+	public class GTEnvironment : GTSim.Environment
 	{
 		private float          framesPerSecond     = 0.0f;
 		private int            recordedFramesCount = 0;
-		private int            maxStepsPerEpisode  = 0;
 		private float          waitTime            = 0.0f;
 		private int            width               = 0;
 		private int            height              = 0;

@@ -7,8 +7,8 @@
     <ProjectGuid>{9FA9CD65-3047-4394-992D-FDE469F8B264}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GTAEnvironment</RootNamespace>
-    <AssemblyName>GTAEnvironment</AssemblyName>
+    <RootNamespace>GTEnvironment</RootNamespace>
+    <AssemblyName>GTEnvironment</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

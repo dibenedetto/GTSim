@@ -2,7 +2,7 @@
 
 using GTA;
 
-namespace GTASim
+namespace GTSim
 {
 	public class TimeController
 	{
