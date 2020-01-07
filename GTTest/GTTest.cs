@@ -10,8 +10,10 @@ using GTA.Native;
 
 using GTSim;
 
-public class GTTest : GTScript
+//public class GTTest : GTScript
+public class GTTest : Script
 {
+	/*
 	public override void Implementable() { }
 
 	public GTTest()
@@ -19,8 +21,21 @@ public class GTTest : GTScript
 	{
 		;
 	}
+	*/
 
-	/*
+	TimeController controller = null;
+	Traffic        traffic    = null;
+
+	public GTTest()
+	{
+		controller = new TimeController ();
+		traffic    = new Traffic        ();
+		
+		KeyDown += OnKeyDown;
+		KeyUp   += OnKeyUp;
+		Tick    += OnTick;
+	}
+
 	public void OnTick(object sender, EventArgs e)
 	{
 		traffic.Update();
@@ -110,15 +125,21 @@ public class GTTest : GTScript
 				}
 				break;
 
-			case Keys.NumPad6:
+			case Keys.NumPad3:
 				{
 					traffic.ActivateDrivingCamera();
 				}
 				break;
 
-			case Keys.NumPad3:
+			case Keys.NumPad6:
 				{
 					traffic.ActivateTrafficCamera();
+				}
+				break;
+
+			case Keys.NumPad9:
+				{
+					traffic.ActivateGameCamera();
 				}
 				break;
 
@@ -142,5 +163,4 @@ public class GTTest : GTScript
 				break;
 		}
 	}
-	*/
 }

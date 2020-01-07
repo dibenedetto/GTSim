@@ -35,11 +35,11 @@ namespace GTSim
 			{
 				AddStateDescriptor(new State.Descriptor
 				{
-					name  = "frames",
-					type  = State.Descriptor.Type.Continuous,
-					shape = new int[]{ recordedFramesCount * 3, height, width },
-					min   = -1.0f,
-					max   = +1.0f
+					Name  = "frames",
+					Type  = State.Descriptor.ItemType.Continuous,
+					Shape = new int[]{ recordedFramesCount * 3, height, width },
+					Min   = -1.0f,
+					Max   = +1.0f
 				});
 			}
 			/////////////////////////////////////////////////////
@@ -109,7 +109,7 @@ namespace GTSim
 
 			return new State.Value
 			{
-				value = values
+				Data = values
 			};
 		}
 
@@ -150,7 +150,7 @@ namespace GTSim
 		{
 			return new State
 			{
-				values = new State.Value[1]
+				Values = new State.Value[1]
 				{
 					GetFrames()
 				}
@@ -181,11 +181,11 @@ namespace GTSim
 		{
 			return new Result
 			{
-				reward           = GetReward             (),
-				nextState        = GetNextState          (),
-				availableActions = GetActionAvailability (),
-				terminated       = IsEpisodeTerminated   (),
-				aborted          = IsEpisodeAborted      ()
+				Reward           = GetReward             (),
+				NextState        = GetNextState          (),
+				AvailableActions = GetActionAvailability (),
+				Terminated       = IsEpisodeTerminated   (),
+				Aborted          = IsEpisodeAborted      ()
 			};
 		}
 

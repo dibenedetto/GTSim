@@ -1,26 +1,16 @@
 ﻿namespace GTSim
 {
-	public class Item : Serializable
+	public class Item
 	{
 		public class MinMax : Serializable
 		{
-			public float min = 0.0f;
-			public float max = 0.0f;
-
-			public override bool FromJsonString(string str)
-			{
-				return false;
-			}
-
-			public override string ToJsonString()
-			{
-				return null;
-			}
+			public float Min { get; set; }
+			public float Max { get; set; }
 		}
 
 		public class Descriptor : MinMax
 		{
-			public enum Type
+			public enum ItemType
 			{
 				None       = 0,
 				Binary     = 1,
@@ -28,46 +18,16 @@
 				Continuous = 3
 			};
 
-			public string name  = null;
-			public Type   type  = Type.None;
-			public int [] shape = null;
-
-			public override bool FromJsonString(string str)
-			{
-				return false;
-			}
-
-			public override string ToJsonString()
-			{
-				return null;
-			}
+			public string   Name  { get; set; }
+			public ItemType Type  { get; set; }
+			public int []   Shape { get; set; }
 		}
 
 		public class Value : Serializable
 		{
-			public float [] value = null;
-
-			public override bool FromJsonString(string str)
-			{
-				return false;
-			}
-
-			public override string ToJsonString()
-			{
-				return null;
-			}
+			public float [] Data { get; set; }
 		}
 
-		public Value [] values = null;
-
-		public override bool FromJsonString(string str)
-		{
-			return false;
-		}
-
-		public override string ToJsonString()
-		{
-			return null;
-		}
+		public Value [] Values { get; set; }
 	}
 }

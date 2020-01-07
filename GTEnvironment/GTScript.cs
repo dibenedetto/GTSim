@@ -5,6 +5,11 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Text.Json.Serialization;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+
 using GTA;
 using GTA.Math;
 
@@ -21,11 +26,6 @@ public abstract class GTScript : Script
 	BinaryWriter writer = null;
 
 	public abstract void Implementable();
-
-	protected class GTMessage
-	{
-		public Dictionary<string, object> dict = new Dictionary<string, object>();
-	}
 
 	public GTScript(int port, GTEnvironment environment)
 	{
@@ -49,14 +49,21 @@ public abstract class GTScript : Script
 		get { return port; }
 	}
 
+	public GTEnvironment Environment
+	{
+		get { return environment; }
+	}
+
 	public void OnTick(object sender, EventArgs e)
 	{
 		if (!WaitForClient()) return;
 
-		var message = ReceiveMessage();
+		var message = (Dictionary<string, object>)(ReceiveMessage());
 		if (message == null) return;
 
-		switch (message.dict["code"].ToString())
+		object result = null;
+
+		switch ((string)(message["code"]))
 		{
 			case "quit":
 				{
@@ -70,17 +77,21 @@ public abstract class GTScript : Script
 				}
 				break;
 
+			case "explain":
+				{
+					result = ApplyExplain();
+				}
+				break;
+
 			case "reset":
 				{
-					var result = ApplyReset();
-					SendMessage(result);
+					result = ApplyReset();
 				}
 				break;
 
 			case "step":
 				{
-					var result = ApplyStep(message);
-					SendMessage(result);
+					result = ApplyStep((string)(message["data"]));
 				}
 				break;
 
@@ -89,6 +100,11 @@ public abstract class GTScript : Script
 					;
 				}
 				break;
+		}
+
+		if (result != null)
+		{
+			SendMessage(result);
 		}
 	}
 
@@ -138,18 +154,18 @@ public abstract class GTScript : Script
 		return true;
 	}
 
-	private void SendMessage(GTMessage message)
+	private void SendMessage(object message)
 	{
-		//var str = message.
-		;
+		string str = JsonSerializer.Serialize(message);
+		writer.Write(str);
 	}
 
-	private GTMessage ReceiveMessage()
+	private object ReceiveMessage()
 	{
 		var str = reader.ReadString();
 		if (str == null) return null;
-
-		return null;
+		var result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
+		return result;
 	}
 
 	private void ApplyQuit()
@@ -163,15 +179,23 @@ public abstract class GTScript : Script
 		environment.Restart();
 	}
 
-	private GTMessage ApplyReset()
+	private object ApplyExplain()
 	{
-		environment.Reset();
-		return null;
+		Dictionary<string, object> result = new Dictionary<string, object>();
+		result["state_descriptors" ] = environment.StateDescriptors;
+		result["action_descriptors"] = environment.ActionDescriptors;
+		return result;
 	}
 
-	private GTMessage ApplyStep(GTMessage action)
+	private object ApplyReset()
 	{
-		environment.Reset();
-		return null;
+		Result result = environment.Reset();
+		return result;
+	}
+
+	private object ApplyStep(string action)
+	{
+		GTSim.Action act = JsonSerializer.Deserialize<GTSim.Action>(action);
+		return environment.Step(act);
 	}
 }

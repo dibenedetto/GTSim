@@ -24,29 +24,29 @@ namespace GTSim
 			/////////////////////////////////////////////////////
 			AddActionDescriptor(new Action.Descriptor
 			{
-				name  = "thrust",
-				type  = State.Descriptor.Type.Continuous,
-				shape = new int[]{ 1 },
-				min   = 0.0f,
-				max   = 1.0f
+				Name  = "thrust",
+				Type  = State.Descriptor.ItemType.Continuous,
+				Shape = new int[]{ 1 },
+				Min   = 0.0f,
+				Max   = 1.0f
 			});
 
 			AddActionDescriptor(new Action.Descriptor
 			{
-				name  = "brake",
-				type  = State.Descriptor.Type.Continuous,
-				shape = new int[]{ 1 },
-				min   = 0.0f,
-				max   = 1.0f
+				Name  = "brake",
+				Type  = State.Descriptor.ItemType.Continuous,
+				Shape = new int[]{ 1 },
+				Min   = 0.0f,
+				Max   = 1.0f
 			});
 
 			AddActionDescriptor(new Action.Descriptor
 			{
-				name  = "steering-angle",
-				type  = State.Descriptor.Type.Continuous,
-				shape = new int[]{ 1 },
-				min   = -1.0f,
-				max   = +1.0f
+				Name  = "steering-angle",
+				Type  = State.Descriptor.ItemType.Continuous,
+				Shape = new int[]{ 1 },
+				Min   = -1.0f,
+				Max   = +1.0f
 			});
 			/////////////////////////////////////////////////////
 		}
@@ -68,9 +68,9 @@ namespace GTSim
 				// thrust
 				{
 					float value = 0.0f;
-					if (action.values[0] != null)
+					if (action.Values[0] != null)
 					{
-						value = action.values[0].value[0];
+						value = action.Values[0].Data[0];
 						actionValue += thurstFactor;
 					}
 					Game.SetControlValueNormalized(Control.VehicleAccelerate, value);
@@ -79,9 +79,9 @@ namespace GTSim
 				// brake
 				{
 					float value = 0.0f;
-					if (action.values[1] != null)
+					if (action.Values[1] != null)
 					{
-						value = action.values[1].value[0];
+						value = action.Values[1].Data[0];
 						actionValue += brakeFactor;
 					}
 					Game.SetControlValueNormalized(Control.VehicleBrake, value);
@@ -90,9 +90,9 @@ namespace GTSim
 				// steering
 				{
 					float value = 0.0f;
-					if (action.values[2] != null)
+					if (action.Values[2] != null)
 					{
-						value = action.values[2].value[0];
+						value = action.Values[2].Data[0];
 						actionValue += steerFactor;
 					}
 					Game.SetControlValueNormalized(Control.VehicleMoveLeftRight, value);

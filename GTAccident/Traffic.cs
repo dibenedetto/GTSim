@@ -11,7 +11,7 @@ namespace GTSim
 	{
 		Vector3              cameraPosition  = Vector3.Zero;
 		Vector3              cameraRotation  = Vector3.Zero;
-		float                cameraFOV       = 0.0f;
+		float                cameraFOV       = -1.0f;
 		DrivingVehicle       drivingVehicle  = null;
 		List<TrafficVehicle> trafficVehicles = new List<TrafficVehicle>();
 		bool                 started         = false;
@@ -35,6 +35,8 @@ namespace GTSim
 
 			drivingVehicle?.Delete();
 			drivingVehicle = null;
+
+			cameraFOV = -1.0f;
 		}
 
 		public DrivingVehicle DrivingVehicle
@@ -151,7 +153,7 @@ namespace GTSim
 				Model   model      = VehicleHash.Futo;
 				float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
 
-				var vehicle = new TrafficVehicle("stupre", model, position, heading, true, maxSpeedMS);
+				var vehicle = new TrafficVehicle("pippo", model, position, heading, true, maxSpeedMS);
 
 				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
 				{
@@ -169,7 +171,20 @@ namespace GTSim
 
 				TrafficVehicles.Add(vehicle);
 			}
-			
+
+			//if (false)
+			{
+				Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
+				float   heading    = Game.Player.Character.Heading + 0.0f;
+				Model   model      = VehicleHash.Futo;
+				float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
+
+				var vehicle = new DrivingVehicle("pluto", model, position, heading, true, maxSpeedMS);
+				DrivingVehicle = vehicle;
+			}
+
+			ResetTrafficCamera();
+
 			return true;
 		}
 
@@ -188,6 +203,7 @@ namespace GTSim
 
 		public void ActivateTrafficCamera()
 		{
+			if (cameraFOV <= 0.0f) return;
 			World.DestroyAllCameras();
 			var camera = World.CreateCamera(cameraPosition, cameraRotation, cameraFOV);
 			camera.IsActive = true;
@@ -250,33 +266,45 @@ namespace GTSim
 			List<Vector3> positions = new List<Vector3>();
 			foreach (var vehicle in trafficVehicles)
 			{
-				positions.Add(vehicle.Position);
+				Vector3 fmin, fmax;
+				(fmin, fmax) = vehicle.Vehicle.Model.Dimensions;
+				Vector3 radius = (fmax - fmin) / 2.0f;
+
+				positions.Add(vehicle.Position - radius);
+				positions.Add(vehicle.Position + radius);
 			}
 			if (drivingVehicle != null)
 			{
-				positions.Add(drivingVehicle.Position);
+				Vector3 fmin, fmax;
+				(fmin, fmax) = drivingVehicle.Vehicle.Model.Dimensions;
+				Vector3 radius = (fmax - fmin) / 2.0f;
+
+				positions.Add(drivingVehicle.Position - radius);
+				positions.Add(drivingVehicle.Position + radius);
 			}
 
 			const float fovY = 60.0f;
 			Vector3 position = Vector3.Zero;
 
-			if (false && positions.Count > 0)
+			if (positions.Count > 0)
 			{
 				Vector3 bmin = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 				Vector3 bmax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
 				foreach (var p in positions)
 				{
-					bmin = Vector3.Minimize(bmin, p);
-					bmax = Vector3.Maximize(bmax, p);
+					bmin = Vector2.Minimize(bmin, p);
+					bmax = Vector2.Maximize(bmax, p);
 				}
 
 				const float expansion = 1.20f;
-				var sceneRadius = (expansion * (bmax - bmin).Length()) / 2.0f;
+				float sceneRadius = (expansion * (bmax - bmin).Length()) / 2.0f;
 
 				var angle  = ((double)fovY / 180.0 * Math.PI);
 				var radius = (double)sceneRadius / Math.Cos(angle);
 				var height = radius * Math.Sin(angle);
+
+				var center = (bmax + bmin) / 2.0f;
 
 				position   = (bmax + bmin) / 2.0f;
 				position.Z = (float)height;

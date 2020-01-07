@@ -80,12 +80,12 @@ namespace GTSim
 			{
 				for (int i=0; i<stateDescriptors.Count; ++i)
 				{
-					Normalize(stateDescriptors[i], result.nextState.values[i]);
+					Normalize(stateDescriptors[i], result.NextState.Values[i]);
 				}
 
 				for (int i=0; i<actionDescriptors.Count; ++i)
 				{
-					Normalize(actionDescriptors[i], result.availableActions[i]);
+					Normalize(actionDescriptors[i], result.AvailableActions[i]);
 				}
 			}
 
@@ -94,7 +94,7 @@ namespace GTSim
 
 		public Result Step(Action action)
 		{
-			if (!resetDone || ((result != null) && (result.terminated || result.aborted))) return null;
+			if (!resetDone || ((result != null) && (result.Terminated || result.Aborted))) return null;
 			
 			++totalEpisodesSteps;
 			++currentEpisodeSteps;
@@ -104,23 +104,23 @@ namespace GTSim
 			{
 				for (int i=0; i<actionDescriptors.Count; ++i)
 				{
-					Normalize(prevResult.availableActions[i], action.values[i]);
+					Normalize(prevResult.AvailableActions[i], action.Values[i]);
 				}
 			}
 
 			result    = DoStep(action);
-			resetDone = !result.terminated && !result.aborted;
+			resetDone = !result.Terminated && !result.Aborted;
 
 			if (result != null)
 			{
 				for (int i=0; i<stateDescriptors.Count; ++i)
 				{
-					Normalize(stateDescriptors[i], result.nextState.values[i]);
+					Normalize(stateDescriptors[i], result.NextState.Values[i]);
 				}
 
 				for (int i=0; i<actionDescriptors.Count; ++i)
 				{
-					Normalize(actionDescriptors[i], result.availableActions[i]);
+					Normalize(actionDescriptors[i], result.AvailableActions[i]);
 				}
 			}
 
@@ -149,8 +149,8 @@ namespace GTSim
 			{
 				actions[i] = new Action.Availability
 				{
-					min = actionDescriptors[i].min,
-					max = actionDescriptors[i].max
+					Min = actionDescriptors[i].Min,
+					Max = actionDescriptors[i].Max
 				};
 			}
 			return actions;
@@ -165,30 +165,30 @@ namespace GTSim
 
 		private void Normalize(Item.MinMax descriptor, Item.Value value)
 		{
-			if ((value != null) && (descriptor.min < descriptor.max))
+			if ((value != null) && (descriptor.Min < descriptor.Max))
 			{
-				float scale = 2.0f / (descriptor.max - descriptor.min);
+				float scale = 2.0f / (descriptor.Max - descriptor.Min);
 				float bias  = -1.0f;
-				for (int i=0; i<value.value.Length; ++i)
+				for (int i=0; i<value.Data.Length; ++i)
 				{
-					var v = Clamp(value.value[i], descriptor.min, descriptor.max);
-					value.value[i] = (v - descriptor.min) * scale + bias;
+					var v = Clamp(value.Data[i], descriptor.Min, descriptor.Max);
+					value.Data[i] = (v - descriptor.Min) * scale + bias;
 				}
 			}
 		}
 
 		private void Normalize(Item.MinMax descriptor, Action.Availability availability)
 		{
-			if ((availability != null) && (descriptor.min < descriptor.max))
+			if ((availability != null) && (descriptor.Min < descriptor.Max))
 			{
-				float scale = 2.0f / (descriptor.max - descriptor.min);
+				float scale = 2.0f / (descriptor.Max - descriptor.Min);
 				float bias  = -1.0f;
 
-				var vmin = Clamp(availability.min, descriptor.min, descriptor.max);
-				availability.min = (vmin - descriptor.min) * scale + bias;
+				var vmin = Clamp(availability.Min, descriptor.Min, descriptor.Max);
+				availability.Min = (vmin - descriptor.Min) * scale + bias;
 				
-				var vmax = Clamp(availability.max, descriptor.min, descriptor.max);
-				availability.max = (vmax - descriptor.min) * scale + bias;
+				var vmax = Clamp(availability.Max, descriptor.Min, descriptor.Max);
+				availability.Max = (vmax - descriptor.Min) * scale + bias;
 			}
 		}
 
