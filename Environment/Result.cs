@@ -1,6 +1,6 @@
 ﻿namespace GTSim
 {
-	public class Result : Serializable
+	public class Result
 	{
 		public float                  Reward           { get; set; }
 		public State                  NextState        { get; set; }

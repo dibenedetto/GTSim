@@ -18,6 +18,8 @@ namespace GTSim
 
 		public Environment(int maxStepsPerEpisode)
 		{
+			stateDescriptors  = new List<State  .Descriptor>();
+			actionDescriptors = new List<Action .Descriptor>();
 			this.maxStepsPerEpisode = Math.Max(1, maxStepsPerEpisode);
 		}
 

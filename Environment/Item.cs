@@ -2,7 +2,7 @@
 {
 	public class Item
 	{
-		public class MinMax : Serializable
+		public class MinMax
 		{
 			public float Min { get; set; }
 			public float Max { get; set; }
@@ -23,7 +23,7 @@
 			public int []   Shape { get; set; }
 		}
 
-		public class Value : Serializable
+		public class Value
 		{
 			public float [] Data { get; set; }
 		}

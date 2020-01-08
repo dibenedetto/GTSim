@@ -5,9 +5,6 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text.Json.Serialization;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 using GTA;
@@ -17,25 +14,28 @@ using GTSim;
 
 public abstract class GTScript : Script
 {
-	protected int           port        = 0;
 	protected GTEnvironment environment = null;
+	protected int           port        = 0;
 
-	TcpListener  server = null;
-	TcpClient    client = null;
-	BinaryReader reader = null;
-	BinaryWriter writer = null;
+	System.Threading.Tasks.Task<System.Net.Sockets.TcpClient> awaitingClient = null;
+
+	TcpListener   server = null;
+	TcpClient     client = null;
+	NetworkStream stream = null;
+	byte[]        buffer = null;
 
 	public abstract void Implementable();
 
-	public GTScript(int port, GTEnvironment environment)
+	public GTScript(GTEnvironment environment, int port = 8086)
 	{
-		this.port = port;
-
 		this.environment = environment;
 		if (this.environment == null)
 		{
 			this.environment = new GTEnvironment(10.0f, 10.0f, 4);
 		}
+
+		this.port   = port;
+		this.buffer = new byte [8 * 1024];
 
 		InitializeServer();
 
@@ -140,31 +140,41 @@ public abstract class GTScript : Script
 		if (client != null)
 		{
 			if (client.Connected) return true;
+			stream = null;
 			client = null;
-			return false;
 		}
 
-		client = server.AcceptTcpClient();
-		if (client == null) return false;
+		if (awaitingClient == null)
+		{
+			awaitingClient = server.AcceptTcpClientAsync();
+		}
 
-		var stream = client.GetStream();
-		reader = new BinaryReader(stream);
-		writer = new BinaryWriter(stream);
+		if (awaitingClient.IsCompleted)
+		{
+			client         = awaitingClient.Result;
+			awaitingClient = null;
 
-		return true;
+			if (client != null)
+			{
+				stream = client.GetStream();
+			}
+		}
+
+		return (client != null);
 	}
 
 	private void SendMessage(object message)
 	{
-		string str = JsonSerializer.Serialize(message);
-		writer.Write(str);
+		string str   = JsonSerializer.Serialize(message);
+		byte[] bytes = System.Text.Encoding.ASCII.GetBytes(str);
+		stream.Write(bytes, 0, bytes.Length);
 	}
 
 	private object ReceiveMessage()
 	{
-		var str = reader.ReadString();
-		if (str == null) return null;
-		var result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
+		int    len = stream.Read(buffer, 0, buffer.Length);
+		string str = System.Text.Encoding.ASCII.GetString(buffer, 0, len);
+		var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
 		return result;
 	}
 
@@ -182,8 +192,8 @@ public abstract class GTScript : Script
 	private object ApplyExplain()
 	{
 		Dictionary<string, object> result = new Dictionary<string, object>();
-		result["state_descriptors" ] = environment.StateDescriptors;
-		result["action_descriptors"] = environment.ActionDescriptors;
+		result["StateDescriptors" ] = environment.StateDescriptors;
+		result["ActionDescriptors"] = environment.ActionDescriptors;
 		return result;
 	}
 

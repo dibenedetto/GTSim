@@ -10,19 +10,17 @@ using GTA.Native;
 
 using GTSim;
 
-//public class GTTest : GTScript
-public class GTTest : Script
+public class GTTest : GTScript
+//public class GTTest : Script
 {
-	/*
 	public override void Implementable() { }
 
-	public GTTest()
-		: base(8080, new GTAccident(5.0f, 10.0f, 4))
+	public GTTest() : base(new GTAccident(5.0f, 10.0f, 4), 8092)
 	{
 		;
 	}
-	*/
 
+	/*
 	TimeController controller = null;
 	Traffic        traffic    = null;
 
@@ -163,4 +161,5 @@ public class GTTest : Script
 				break;
 		}
 	}
+	*/
 }
