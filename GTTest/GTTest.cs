@@ -13,9 +13,7 @@ using GTSim;
 public class GTTest : GTScript
 //public class GTTest : Script
 {
-	public override void Implementable() { }
-
-	public GTTest() : base(new GTAccident(5.0f, 10.0f, 4), 8092)
+	public GTTest() : base(new GTAccident(5.0f, 10.0f, 4), 8086)
 	{
 		;
 	}

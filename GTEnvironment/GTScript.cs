@@ -4,8 +4,8 @@ using System.Windows.Forms;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-
-using JsonSerializer = System.Text.Json.JsonSerializer;
+//using System.Text.Json;
+using Newtonsoft.Json;
 
 using GTA;
 using GTA.Math;
@@ -18,13 +18,12 @@ public abstract class GTScript : Script
 	protected int           port        = 0;
 
 	System.Threading.Tasks.Task<System.Net.Sockets.TcpClient> awaitingClient = null;
+	System.Threading.Tasks.Task<int>                          awaitingRead   = null;
 
 	TcpListener   server = null;
 	TcpClient     client = null;
 	NetworkStream stream = null;
 	byte[]        buffer = null;
-
-	public abstract void Implementable();
 
 	public GTScript(GTEnvironment environment, int port = 8086)
 	{
@@ -68,12 +67,6 @@ public abstract class GTScript : Script
 			case "quit":
 				{
 					ApplyQuit();
-				}
-				break;
-
-			case "restart":
-				{
-					ApplyRestart();
 				}
 				break;
 
@@ -149,7 +142,7 @@ public abstract class GTScript : Script
 			awaitingClient = server.AcceptTcpClientAsync();
 		}
 
-		if (awaitingClient.IsCompleted)
+		if ((awaitingClient != null) && awaitingClient.IsCompleted)
 		{
 			client         = awaitingClient.Result;
 			awaitingClient = null;
@@ -157,6 +150,7 @@ public abstract class GTScript : Script
 			if (client != null)
 			{
 				stream = client.GetStream();
+				environment.Restart();
 			}
 		}
 
@@ -165,17 +159,44 @@ public abstract class GTScript : Script
 
 	private void SendMessage(object message)
 	{
-		string str   = JsonSerializer.Serialize(message);
+		//string str   = JsonSerializer.Serialize(message);
+		string str   = JsonConvert.SerializeObject(message);
 		byte[] bytes = System.Text.Encoding.ASCII.GetBytes(str);
-		stream.Write(bytes, 0, bytes.Length);
+
+		try
+		{
+			stream.WriteAsync(bytes, 0, bytes.Length);
+		}
+		catch
+		{
+			;
+		}
 	}
 
 	private object ReceiveMessage()
 	{
-		int    len = stream.Read(buffer, 0, buffer.Length);
-		string str = System.Text.Encoding.ASCII.GetString(buffer, 0, len);
-		var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
-		return result;
+		if (awaitingRead == null)
+		{
+			try
+			{
+				awaitingRead = stream.ReadAsync(buffer, 0, buffer.Length);
+			}
+			catch
+			{
+				;
+			}
+		}
+
+		if ((awaitingRead != null) && awaitingRead.IsCompleted)
+		{
+			int    len = awaitingRead.Result;
+			string str = System.Text.Encoding.ASCII.GetString(buffer, 0, len);
+			//var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
+			var    result = JsonConvert.DeserializeObject<Dictionary<string, object>>(str);
+			return result;
+		}
+
+		return null;
 	}
 
 	private void ApplyQuit()
@@ -205,7 +226,8 @@ public abstract class GTScript : Script
 
 	private object ApplyStep(string action)
 	{
-		GTSim.Action act = JsonSerializer.Deserialize<GTSim.Action>(action);
+		//GTSim.Action act = JsonSerializer.Deserialize<GTSim.Action>(action);
+		GTSim.Action act = JsonConvert.DeserializeObject<GTSim.Action>(action);
 		return environment.Step(act);
 	}
 }
