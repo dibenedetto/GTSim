@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 using GTA;
 using GTA.Math;
@@ -28,7 +29,7 @@ namespace GTSim
 				Type  = State.Descriptor.ItemType.Continuous,
 				Shape = new int[]{ 1 },
 				Min   = 0.0f,
-				Max   = 1.0f
+				Max   = Constants.MAX_SPEED
 			});
 
 			AddActionDescriptor(new Action.Descriptor
@@ -49,6 +50,8 @@ namespace GTSim
 				Max   = +1.0f
 			});
 			/////////////////////////////////////////////////////
+
+			traffic = new Traffic();
 		}
 
 		protected override void InitializeEpisode()
@@ -70,10 +73,12 @@ namespace GTSim
 					float value = 0.0f;
 					if (action.Values[0] != null)
 					{
-						value = action.Values[0].Data[0];
+						value = action.Values[0].Data[0] / ActionDescriptors[0].Max;
 						actionValue += thurstFactor;
 					}
-					Game.SetControlValueNormalized(Control.VehicleAccelerate, value);
+					//Game.SetControlValueNormalized(Control.VehicleAccelerate, value);
+					traffic.DrivingVehicle?.Thurst(value);
+					//File.AppendAllText("sbuthre.txt", "thrust: " + value + "\n");
 				}
 
 				// brake
@@ -84,7 +89,8 @@ namespace GTSim
 						value = action.Values[1].Data[0];
 						actionValue += brakeFactor;
 					}
-					Game.SetControlValueNormalized(Control.VehicleBrake, value);
+					//Game.SetControlValueNormalized(Control.VehicleBrake, value);
+					traffic.DrivingVehicle?.Brake(value);
 				}
 
 				// steering
@@ -95,7 +101,8 @@ namespace GTSim
 						value = action.Values[2].Data[0];
 						actionValue += steerFactor;
 					}
-					Game.SetControlValueNormalized(Control.VehicleMoveLeftRight, value);
+					//Game.SetControlValueNormalized(Control.VehicleMoveLeftRight, value);
+					traffic.DrivingVehicle?.Steer(value);
 				}
 			}
 

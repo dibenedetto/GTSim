@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Drawing;
@@ -60,6 +61,11 @@ namespace GTSim
 			get { return framesPerSecond; }
 		}
 
+		protected override void DoRestart()
+		{
+			controller.Resume();
+		}
+
 		protected override Result DoReset()
 		{
 			controller.Resume();
@@ -78,7 +84,12 @@ namespace GTSim
 
 		private void InitializeFrames()
 		{
-			if (recordedFramesCount <= 0) return;
+			if (recordedFramesCount <= 0)
+			{
+				//File.AppendAllText("sbuthre.txt", "ping\n");
+				controller.Run(waitTime);
+				return;
+			}
 			frames.Clear();
 			AcquireFrames(recordedFramesCount);
 		}
@@ -87,6 +98,7 @@ namespace GTSim
 		{
 			if (recordedFramesCount <= 0)
 			{
+				//File.AppendAllText("sbuthre.txt", "pong: " + waitTime  + "\n");
 				controller.Run(waitTime);
 				return;
 			}
@@ -148,13 +160,15 @@ namespace GTSim
 
 		protected override State GetNextState()
 		{
-			return new State
+			var state = new State();
+			if (recordedFramesCount > 0)
 			{
-				Values = new State.Value[1]
+				state.Values = new State.Value[1]
 				{
 					GetFrames()
-				}
+				};
 			};
+			return state;
 		}
 
 		protected virtual bool IsEpisodeTerminated()

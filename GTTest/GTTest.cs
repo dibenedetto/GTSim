@@ -13,7 +13,7 @@ using GTSim;
 public class GTTest : GTScript
 //public class GTTest : Script
 {
-	public GTTest() : base(new GTAccident(5.0f, 10.0f, 4), 8086)
+	public GTTest() : base(new GTAccident(10.0f, 10.0f, 0), 8086)
 	{
 		;
 	}

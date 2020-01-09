@@ -63,7 +63,8 @@ namespace GTSim
 
 		public void Thurst(float value)
 		{
-			Function.Call(Hash._SET_CONTROL_NORMAL, 27, GTA.Control.VehicleAccelerate, value);
+			//Function.Call(Hash._SET_CONTROL_NORMAL, 27, GTA.Control.VehicleAccelerate, value);
+			Speed = value;
 		}
 
 		public void Brake(float value)

@@ -65,6 +65,8 @@ namespace GTSim
 			episodesCount       = 0;
 			totalEpisodesSteps  = 0;
 			currentEpisodeSteps = 0;
+
+			DoRestart();
 		}
 
 		public Result Reset()
@@ -131,11 +133,25 @@ namespace GTSim
 
 		protected void AddStateDescriptor(State.Descriptor descriptor)
 		{
+			if (descriptor.Min > descriptor.Max)
+			{
+				float temp = descriptor.Min;
+				descriptor.Min = descriptor.Max;
+				descriptor.Max = temp;
+			}
+
 			stateDescriptors.Add(descriptor);
 		}
 
 		protected void AddActionDescriptor(Action.Descriptor descriptor)
 		{
+			if (descriptor.Min > descriptor.Max)
+			{
+				float temp = descriptor.Min;
+				descriptor.Min = descriptor.Max;
+				descriptor.Max = temp;
+			}
+
 			actionDescriptors.Add(descriptor);
 		}
 
@@ -167,8 +183,9 @@ namespace GTSim
 
 		private void Normalize(Item.MinMax descriptor, Item.Value value)
 		{
-			if ((value != null) && (descriptor.Min < descriptor.Max))
+			if ((value != null) && (descriptor.Min <= descriptor.Max))
 			{
+				/*
 				float scale = 2.0f / (descriptor.Max - descriptor.Min);
 				float bias  = -1.0f;
 				for (int i=0; i<value.Data.Length; ++i)
@@ -176,13 +193,19 @@ namespace GTSim
 					var v = Clamp(value.Data[i], descriptor.Min, descriptor.Max);
 					value.Data[i] = (v - descriptor.Min) * scale + bias;
 				}
+				*/
+				for (int i = 0; i < value.Data.Length; ++i)
+				{
+					value.Data[i] = Clamp(value.Data[i], descriptor.Min, descriptor.Max);
+				}
 			}
 		}
 
 		private void Normalize(Item.MinMax descriptor, Action.Availability availability)
 		{
-			if ((availability != null) && (descriptor.Min < descriptor.Max))
+			if ((availability != null) && (descriptor.Min <= descriptor.Max))
 			{
+				/*
 				float scale = 2.0f / (descriptor.Max - descriptor.Min);
 				float bias  = -1.0f;
 
@@ -191,7 +214,22 @@ namespace GTSim
 				
 				var vmax = Clamp(availability.Max, descriptor.Min, descriptor.Max);
 				availability.Max = (vmax - descriptor.Min) * scale + bias;
+				*/
+				if (availability.Min > availability.Max)
+				{
+					float temp = availability.Min;
+					availability.Min = availability.Max;
+					availability.Max = temp;
+				}
+
+				availability.Min = Clamp(availability.Min, descriptor.Min, descriptor.Max);
+				availability.Max = Clamp(availability.Max, descriptor.Min, descriptor.Max);
 			}
+		}
+
+		protected virtual void DoRestart()
+		{
+			;
 		}
 
 		protected virtual Result DoReset()

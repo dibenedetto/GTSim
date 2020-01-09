@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 
 using GTA;
 
@@ -33,6 +34,7 @@ namespace GTSim
 				Script.Yield();
 			}
 			stopwatch.Stop();
+			//File.AppendAllText("sbuthre.txt", "++++: " + stopwatch.ElapsedMilliseconds + "\n");
 			Pause();
 			return (((float)(stopwatch.ElapsedMilliseconds)) / 1000.0f);
 		}

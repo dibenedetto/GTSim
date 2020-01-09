@@ -24,6 +24,8 @@ public abstract class GTScript : Script
 	TcpClient     client = null;
 	NetworkStream stream = null;
 	byte[]        buffer = null;
+	byte[]        check  = null;
+
 
 	public GTScript(GTEnvironment environment, int port = 8086)
 	{
@@ -35,6 +37,7 @@ public abstract class GTScript : Script
 
 		this.port   = port;
 		this.buffer = new byte [8 * 1024];
+		this.check  = new byte [1];
 
 		InitializeServer();
 
@@ -62,29 +65,29 @@ public abstract class GTScript : Script
 
 		object result = null;
 
-		switch ((string)(message["code"]))
+		switch ((string)(message["Code"]))
 		{
-			case "quit":
+			case "Quit":
 				{
 					ApplyQuit();
 				}
 				break;
 
-			case "explain":
+			case "Explain":
 				{
 					result = ApplyExplain();
 				}
 				break;
 
-			case "reset":
+			case "Reset":
 				{
 					result = ApplyReset();
 				}
 				break;
 
-			case "step":
+			case "Step":
 				{
-					result = ApplyStep((string)(message["data"]));
+					result = ApplyStep(message["Action"]);
 				}
 				break;
 
@@ -108,7 +111,10 @@ public abstract class GTScript : Script
 
 	public void OnKeyUp(object sender, KeyEventArgs e)
 	{
-		;
+		if (e.KeyCode == Keys.NumPad0)
+		{
+			Game.Pause(false);
+		}
 	}
 
 	private void InitializeServer()
@@ -132,9 +138,13 @@ public abstract class GTScript : Script
 	{
 		if (client != null)
 		{
-			if (client.Connected) return true;
+			if (client.Connected)
+			{
+				return true;
+			}
 			stream = null;
 			client = null;
+			environment.Restart();
 		}
 
 		if (awaitingClient == null)
@@ -144,14 +154,17 @@ public abstract class GTScript : Script
 
 		if ((awaitingClient != null) && awaitingClient.IsCompleted)
 		{
-			client         = awaitingClient.Result;
-			awaitingClient = null;
-
-			if (client != null)
+			if (!awaitingClient.IsCanceled && !awaitingClient.IsFaulted)
 			{
-				stream = client.GetStream();
-				environment.Restart();
+				client = awaitingClient.Result;
+				if (client != null)
+				{
+					stream = client.GetStream();
+				}
 			}
+
+			awaitingClient = null;
+			environment.Restart();
 		}
 
 		return (client != null);
@@ -189,14 +202,29 @@ public abstract class GTScript : Script
 
 		if ((awaitingRead != null) && awaitingRead.IsCompleted)
 		{
-			int    len = awaitingRead.Result;
-			string str = System.Text.Encoding.ASCII.GetString(buffer, 0, len);
-			//var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
-			var    result = JsonConvert.DeserializeObject<Dictionary<string, object>>(str);
-			return result;
+			if (!awaitingRead.IsCanceled && !awaitingRead.IsFaulted)
+			{
+				int len = awaitingRead.Result;
+				awaitingRead = null;
+
+				string str = System.Text.Encoding.ASCII.GetString(buffer, 0, len);
+				//var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
+				var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(str);
+				return result;
+			}
+
+			awaitingRead = null;
 		}
 
 		return null;
+	}
+
+	private object MakeMessage(string code, object data)
+	{
+		Dictionary<string, object> message = new Dictionary<string, object>();
+		message["Code"] = code;
+		message["Data"] = data;
+		return message;
 	}
 
 	private void ApplyQuit()
@@ -205,29 +233,28 @@ public abstract class GTScript : Script
 		Abort();
 	}
 
-	private void ApplyRestart()
-	{
-		environment.Restart();
-	}
-
 	private object ApplyExplain()
 	{
 		Dictionary<string, object> result = new Dictionary<string, object>();
 		result["StateDescriptors" ] = environment.StateDescriptors;
 		result["ActionDescriptors"] = environment.ActionDescriptors;
-		return result;
+		return MakeMessage("Explain", result);
 	}
 
 	private object ApplyReset()
 	{
 		Result result = environment.Reset();
-		return result;
+		return MakeMessage("Reset", result);
 	}
 
-	private object ApplyStep(string action)
+	private object ApplyStep(object action)
 	{
 		//GTSim.Action act = JsonSerializer.Deserialize<GTSim.Action>(action);
-		GTSim.Action act = JsonConvert.DeserializeObject<GTSim.Action>(action);
-		return environment.Step(act);
+
+		string       str = JsonConvert.SerializeObject(action);
+		GTSim.Action act = JsonConvert.DeserializeObject<GTSim.Action>(str);
+		object result = environment.Step(act);
+
+		return MakeMessage("Step", result);
 	}
 }

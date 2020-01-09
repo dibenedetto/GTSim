@@ -147,6 +147,7 @@ namespace GTSim
 
 			Clear();
 
+			if (false)
 			{
 				Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
 				float   heading    = Game.Player.Character.Heading + 0.0f;
@@ -177,7 +178,7 @@ namespace GTSim
 				Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
 				float   heading    = Game.Player.Character.Heading + 0.0f;
 				Model   model      = VehicleHash.Futo;
-				float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
+				float   maxSpeedMS = Constants.MAX_SPEED;
 
 				var vehicle = new DrivingVehicle("pluto", model, position, heading, true, maxSpeedMS);
 				DrivingVehicle = vehicle;

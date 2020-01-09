@@ -16,6 +16,7 @@
 				Binary     = 1,
 				Discrete   = 2,
 				Continuous = 3
+				//Image      = 4
 			};
 
 			public string   Name  { get; set; }
@@ -25,7 +26,8 @@
 
 		public class Value
 		{
-			public float [] Data { get; set; }
+			public float [] Data  { get; set; }
+			//public string   Image { get; set; }
 		}
 
 		public Value [] Values { get; set; }
