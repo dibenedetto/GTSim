@@ -147,7 +147,7 @@ namespace GTSim
 
 			Clear();
 
-			if (false)
+			//if (false)
 			{
 				Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
 				float   heading    = Game.Player.Character.Heading + 0.0f;

@@ -41,13 +41,13 @@ public class GTTest : GTScript
 			//File.AppendAllText("sbuthre.txt", "value : " + value + "\n");
 		}
 
-		if (false && traffic.DrivingVehicle != null)
+		if (traffic.DrivingVehicle != null)
 		{
 			{
 				float value = 0.0f;
 				if (Game.IsKeyPressed(Keys.Y))
 				{
-					value = 1.0f;
+					value = 0.3f;
 				}
 				traffic.DrivingVehicle.Thurst(value);
 			}

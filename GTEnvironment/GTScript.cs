@@ -39,6 +39,8 @@ public abstract class GTScript : Script
 		this.buffer = new byte [8 * 1024];
 		this.check  = new byte [1];
 
+		this.receiveList = new List<string>();
+
 		InitializeServer();
 
 		this.KeyDown += OnKeyDown;
@@ -56,20 +58,69 @@ public abstract class GTScript : Script
 		get { return environment; }
 	}
 
+	List<string> receiveList = null;
+	DateTime pingTime = DateTime.MinValue;
+	bool pingSent = false;
+	DateTime lastMessageTime = DateTime.MinValue;
+
 	public void OnTick(object sender, EventArgs e)
 	{
 		if (!WaitForClient()) return;
 
 		var message = (Dictionary<string, object>)(ReceiveMessage());
-		if (message == null) return;
+		if (message == null)
+		{
+			const double sendPingTime      = 10.0;
+			const double respondToPingTime = 10.0;
+
+			var now = DateTime.Now;
+
+			if (pingSent)
+			{
+				var elapsed = (now - pingTime).TotalSeconds;
+				if (elapsed > respondToPingTime)
+				{
+					ApplyQuit();
+				}
+			}
+			else
+			{
+				var elapsed = (now - lastMessageTime).TotalSeconds;
+				if (elapsed > sendPingTime)
+				{
+					SendPing();
+				}
+			}
+
+			return;
+		}
+
+		lastMessageTime = DateTime.Now;
+
+		string code = ((string)(message["Code"]));
+		object data = ((object)(message["Data"]));
 
 		object result = null;
 
-		switch ((string)(message["Code"]))
+		//File.AppendAllText("sbuthre.txt", "code: " + code + "\n");
+
+		switch (code)
 		{
+			case "Exit":
+				{
+					ApplyExit();
+				}
+				break;
+
 			case "Quit":
 				{
 					ApplyQuit();
+				}
+				break;
+
+			case "Pong":
+				{
+					ApplyPong();
 				}
 				break;
 
@@ -87,7 +138,7 @@ public abstract class GTScript : Script
 
 			case "Step":
 				{
-					result = ApplyStep(message["Action"]);
+					result = ApplyStep(data);
 				}
 				break;
 
@@ -142,9 +193,7 @@ public abstract class GTScript : Script
 			{
 				return true;
 			}
-			stream = null;
-			client = null;
-			environment.Restart();
+			ApplyQuit();
 		}
 
 		if (awaitingClient == null)
@@ -188,6 +237,15 @@ public abstract class GTScript : Script
 
 	private object ReceiveMessage()
 	{
+		if (receiveList.Count > 0)
+		{
+			//var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
+			//File.AppendAllText("sbuthre.txt", "json: " + receiveList[0] + "\n");
+			var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(receiveList[0]);
+			receiveList.RemoveAt(0);
+			return result;
+		}
+
 		if (awaitingRead == null)
 		{
 			try
@@ -208,8 +266,24 @@ public abstract class GTScript : Script
 				awaitingRead = null;
 
 				string str = System.Text.Encoding.ASCII.GetString(buffer, 0, len);
+
+				string[] spearator = { "}{" };
+				string[] strlist   = str.Split(spearator, StringSplitOptions.RemoveEmptyEntries);
+
+				//File.AppendAllText("sbuthre.txt", "json-all: " + str + "\n");
+				if (strlist.Length > 1)
+				{
+					strlist[0] = strlist[0] + "}";
+					for (int i=1; i<(strlist.Length-1); ++i)
+					{
+						receiveList.Add("{" + strlist[i] + "}");
+					}
+					receiveList.Add("{" + strlist[strlist.Length - 1]);
+				}
+
 				//var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
-				var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(str);
+				var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(strlist[0]);
+				
 				return result;
 			}
 
@@ -221,16 +295,42 @@ public abstract class GTScript : Script
 
 	private object MakeMessage(string code, object data)
 	{
-		Dictionary<string, object> message = new Dictionary<string, object>();
-		message["Code"] = code;
-		message["Data"] = data;
-		return message;
+		return new Dictionary<string, object>()
+		{
+			["Code"] = code,
+			["Data"] = data
+		};
+	}
+
+	private void SendPing()
+	{
+		var message = MakeMessage("Ping", null);
+		SendMessage(message);
+
+		pingSent = true;
+		pingTime = DateTime.Now;
+	}
+
+	private void ApplyExit()
+	{
+		FinalizeServer();
+		Abort();
 	}
 
 	private void ApplyQuit()
 	{
-		FinalizeServer();
-		Abort();
+		pingSent = false;
+		stream   = null;
+		client   = null;
+		environment.Restart();
+	}
+
+	private void ApplyPong()
+	{
+		if (pingSent)
+		{
+			pingSent = false;
+		}
 	}
 
 	private object ApplyExplain()
