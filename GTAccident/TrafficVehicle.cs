@@ -220,6 +220,11 @@ namespace GTSim
 			get { return vehicle.Velocity; }
 		}
 
+		public float MaxSpeed
+		{
+			get { return status.maxSpeed; }
+		}
+
 		public float Speed
 		{
 			get { return vehicle.Speed; }
@@ -252,20 +257,26 @@ namespace GTSim
 		{
 			get
 			{
-				const float engineMaxHealt  = 1.0f;
-				const float engineFactor    = 1.0f / engineMaxHealt;
+				const float engineMinHealt  = -4000.0f;
+				const float engineMaxHealt  = +1000.0f;
+				const float engineFactor    = 1.0f;
+				const float engineScale     = engineFactor / (engineMaxHealt - engineMinHealt);
 
-				const float bodyMaxHealt    = 1.0f;
-				const float bodyFactor      = 1.0f / bodyMaxHealt;
-			
-					  float vehicleMaxHealt = vehicle.MaxHealthFloat;
-					  float vehicleFactor   = 1.0f / vehicle.MaxHealthFloat;
+				const float bodyMinHealt    = +   0.0f;
+				const float bodyMaxHealt    = +1000.0f;
+				const float bodyFactor      = 1.0f;
+				const float bodyScale       = bodyFactor / (bodyMaxHealt - bodyMinHealt);
 
-					  float globalFactor    = 1.0f / (engineFactor + bodyFactor + vehicleFactor);
+				float       vehicleMinHealt = +0.0f;
+				float       vehicleMaxHealt = vehicle.MaxHealthFloat;
+				float       vehicleFactor   = 1.0f;
+				float       vehicleScale    = vehicleFactor / (vehicleMaxHealt - vehicleMinHealt);
 
-				float engine = engineFactor  * vehicle.EngineHealth;
-				float body   = bodyFactor    * vehicle.BodyHealth;
-				float veh    = vehicleFactor * vehicle.HealthFloat;
+				float       globalFactor    = 1.0f / (engineFactor + bodyFactor + vehicleFactor);
+
+				float engine = (vehicle.EngineHealth - engineMinHealt ) * engineScale ;
+				float body   = (vehicle.BodyHealth   - bodyMinHealt   ) * bodyScale   ;
+				float veh    = (vehicle.HealthFloat  - vehicleMinHealt) * vehicleScale;
 
 				float healt  = globalFactor  * (engine + body + veh);
 

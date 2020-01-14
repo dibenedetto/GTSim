@@ -3,6 +3,7 @@ import socket
 import select
 import queue
 import json
+import time
 
 GTSIM_ADDRESS     = '127.0.0.1'
 GTSIM_PORT        = 8086
@@ -28,7 +29,7 @@ class GTEnvironment():
 
 				if sock_quit in rs:
 					sock_quit.recv(1)
-					break;
+					break
 
 			sock_quit .close()
 			sock_get  .close()
@@ -55,48 +56,48 @@ class GTEnvironment():
 
 				if sock_quit in rs:
 					sock_quit.recv(1)
-					break;
+					break
 
 			sock_quit.close()
 
-		def create_channel(address, port, s):
-			def sock_accept(sock, s):
-				s['s'] = None
-				s['s'], addr = sock.accept()
+		def create_channel(address, port, info):
+			def sock_accept(sock, info, port):
+				info[port], addr = sock.accept()
 
+			info[port] = None
 			sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			sock.bind((address, port))
 			sock.listen()
-			task = threading.Thread(target=sock_accept, args=(sock, s,))
+			task = threading.Thread(target=sock_accept, args=(sock, info, port,))
 			task.start()
-			return sock;
+			return sock
 
 		sock_comm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock_comm.connect((GTSIM_ADDRESS, GTSIM_PORT + 0))
 
-		s1 = { 's': None }
-		sock_quit_send = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 1, s1)
-		s2 = { 's': None }
-		sock_get       = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 2, s2)
+		info = { }
+
+		sock_quit_send = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 1, info)
+		sock_get       = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 2, info)
 		q_send         = queue.Queue()
 		send           = threading.Thread(target=send_thread, args=(sock_comm, GTSIM_BUFFER_SIZE, q_send,))
 		send.start()
-		while (s1['s'] == None): pass
-		while (s2['s'] == None): pass
 
-		s3 = { 's': None }
-		sock_quit_recv = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 3, s3)
+		sock_quit_recv = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 3, info)
 		q_recv         = queue.Queue()
 		recv           = threading.Thread(target=recv_thread, args=(sock_comm, GTSIM_BUFFER_SIZE, q_recv,))
 		recv.start()
-		while (s3['s'] == None): pass
+
+		while (info[GTSIM_PORT + 1] == None): time.sleep(0.01)
+		while (info[GTSIM_PORT + 2] == None): time.sleep(0.01)
+		while (info[GTSIM_PORT + 3] == None): time.sleep(0.01)
 
 		self.sock_comm      = sock_comm
-		self.sock_quit_send = s1['s']
-		self.sock_get_send  = s2['s']
+		self.sock_quit_send = info[GTSIM_PORT + 1]
+		self.sock_get_send  = info[GTSIM_PORT + 2]
 		self.q_send         = q_send
 		self.send           = send
-		self.sock_quit_recv = s3['s']
+		self.sock_quit_recv = info[GTSIM_PORT + 3]
 		self.q_recv         = q_recv
 		self.recv           = recv
 		self.open           = True
@@ -148,13 +149,16 @@ class GTEnvironment():
 		return message
 
 
-env    = GTEnvironment()
-result = env.reset()
-print(result)
-done   = result['Data']['Terminated']
-while not done:
-	action = { 'Values': [ { 'Data': [ 40.0 ] }, None, None ] }
-	result = env.step(action)
+env = GTEnvironment()
+
+for i in range(1):
+	result = env.reset()
 	print(result)
 	done   = result['Data']['Terminated']
+	while not done:
+		action = { 'Values': [ { 'Data': [ 40.0 ] }, None, None ] }
+		result = env.step(action)
+		print(result)
+		done   = result['Data']['Terminated']
+
 env.close()

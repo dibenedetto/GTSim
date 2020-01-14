@@ -54,6 +54,13 @@ namespace GTSim
 			traffic = new Traffic();
 		}
 
+		protected override void DoRestart()
+		{
+			base.DoRestart();
+			traffic.Clear();
+			traffic.ActivateGameCamera();
+		}
+
 		protected override void InitializeEpisode()
 		{
 			traffic.InitializeRandomEpisode();
@@ -73,10 +80,9 @@ namespace GTSim
 					float value = 0.0f;
 					if (action.Values[0] != null)
 					{
-						value = action.Values[0].Data[0] / ActionDescriptors[0].Max;
+						value = action.Values[0].Data[0];// / ActionDescriptors[0].Max;
 						actionValue += thurstFactor;
 					}
-					//Game.SetControlValueNormalized(Control.VehicleAccelerate, value);
 					traffic.DrivingVehicle?.Thurst(value);
 					//File.AppendAllText("sbuthre.txt", "thrust: " + value + "\n");
 				}
@@ -89,7 +95,6 @@ namespace GTSim
 						value = action.Values[1].Data[0];
 						actionValue += brakeFactor;
 					}
-					//Game.SetControlValueNormalized(Control.VehicleBrake, value);
 					traffic.DrivingVehicle?.Brake(value);
 				}
 
@@ -101,12 +106,13 @@ namespace GTSim
 						value = action.Values[2].Data[0];
 						actionValue += steerFactor;
 					}
-					//Game.SetControlValueNormalized(Control.VehicleMoveLeftRight, value);
 					traffic.DrivingVehicle?.Steer(value);
 				}
 			}
 
 			actionValue /= (thurstFactor + brakeFactor + steerFactor);
+
+			traffic.Update();
 		}
 
 		protected override float GetReward()
@@ -114,9 +120,7 @@ namespace GTSim
 			const float actionFactor = -0.1f;
 			const float damageFactor = -1.0f;
 
-			var vehicle = traffic.DrivingVehicle.Vehicle;
-
-			float damageValue = ((vehicle.MaxHealthFloat - vehicle.HealthFloat) / vehicle.MaxHealthFloat);
+			float damageValue = traffic.Damage;
 			float reward      = actionFactor * actionValue + damageFactor * damageValue;
 
 			return reward;

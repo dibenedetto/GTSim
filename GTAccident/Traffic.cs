@@ -56,122 +56,7 @@ namespace GTSim
 
 		public bool InitializeRandomEpisode()
 		{
-			/*
-				{
-					id      : 123,
-					version : 1,
-
-					meta : {
-						name        : "stune",
-						description : "desc",
-						author      : "name",
-						date        : "date"
-					}
-
-					scenario : {
-						vehicles : {
-							driving : {
-								name      : "Driver_0",
-								model     : "vehicle_mesh",
-								position  : [x, y, z],
-								heading   : 90.0,
-								max_speed : 170.0 / 3.6,
-								speed     : 70.0 / 3.6
-							},
-
-							traffic : [
-								{
-									name      : "Traffic_0",
-									model     : "vehicle_mesh",
-									position  : [x, y, z],
-									heading   : 90.0,
-									max_speed : 170.0 / 3.6,
-									speed     : 70.0 / 3.6,
-
-									timeline  : [
-										{
-											offset   : 0.0,
-											speed    : 100.0,
-											steering : 0.0
-										},
-										{
-											offset   : 0.0,
-											speed    : 100.0,
-											steering : 0.0
-										}
-									]
-								},
-							]
-						}
-					}
-				}
-
-
-
-
-				{
-					driving : {
-						name      : "Driver_0",
-						model     : "vehicle_mesh",
-						position  : [x, y, z],
-						heading   : 90.0,
-						max_speed : 170.0 / 3.6,
-						speed     : 70.0 / 3.6
-					},
-
-					traffic : [
-						{
-							name      : "Traffic_0",
-							model     : "vehicle_mesh",
-							position  : [x, y, z],
-							heading   : 90.0,
-							max_speed : 170.0 / 3.6,
-							speed     : 70.0 / 3.6,
-
-							timeline  : [
-								{
-									offset   : 0.0,
-									speed    : 100.0,
-									steering : 0.0
-								},
-								{
-									offset   : 1.3,
-									speed    : 100.0,
-									steering : 0.0
-								}
-							]
-						},
-					]
-				}
-			*/
-
 			Clear();
-
-			//if (false)
-			{
-				Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
-				float   heading    = Game.Player.Character.Heading + 0.0f;
-				Model   model      = VehicleHash.Futo;
-				float   maxSpeedMS = 150.0f * Constants.KMH_TO_MS;
-
-				var vehicle = new TrafficVehicle("pippo", model, position, heading, true, maxSpeedMS);
-
-				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
-				{
-					offset        = TimeSpan.Zero,
-					speed         = 70.0f * Constants.KMH_TO_MS,
-					steeringAngle = 0.0f
-				});
-
-				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
-				{
-					offset        = new TimeSpan(0, 0, 2),
-					speed         = 70.0f * Constants.KMH_TO_MS,
-					steeringAngle = -1.0f
-				});
-
-				TrafficVehicles.Add(vehicle);
-			}
 
 			//if (false)
 			{
@@ -184,9 +69,34 @@ namespace GTSim
 				DrivingVehicle = vehicle;
 			}
 
-			ResetTrafficCamera();
+			//if (false)
+			{
+				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * 50.0f;
+				float   heading    = DrivingVehicle.Heading + 180.0f;
+				Model   model      = VehicleHash.Futo;
+				float   maxSpeedMS = Constants.MAX_SPEED;
 
-			return true;
+				var vehicle = new TrafficVehicle("pippo", model, position, heading, true, maxSpeedMS);
+				vehicle.Heading = heading;
+
+				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
+				{
+					offset        = TimeSpan.Zero,
+					speed         = 70.0f * Constants.KMH_TO_MS,
+					steeringAngle = 0.0f
+				});
+
+				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
+				{
+					offset        = new TimeSpan(0, 0, 1),
+					speed         = 70.0f * Constants.KMH_TO_MS,
+					steeringAngle = -1.0f
+				});
+
+				TrafficVehicles.Add(vehicle);
+			}
+
+			return Start();
 		}
 
 		public void ActivateGameCamera()
@@ -211,7 +121,7 @@ namespace GTSim
 			World.RenderingCamera = camera;
 		}
 
-		public bool Start(bool restoreState = true)
+		public bool Start()
 		{
 			Stop();
 			started = true;
@@ -230,6 +140,10 @@ namespace GTSim
 			drivingVehicle?.Update(now);
 
 			ResetTrafficCamera();
+
+			//ActivateGameCamera    ();
+			//ActivateDrivingCamera ();
+			ActivateTrafficCamera ();
 
 			return true;
 		}
@@ -260,6 +174,14 @@ namespace GTSim
 				vehicle.Update(now);
 			}
 			drivingVehicle?.Update(now);
+
+			ResetTrafficCamera    ();
+			ActivateTrafficCamera ();
+		}
+
+		public float Damage
+		{
+			get { return ((DrivingVehicle != null) ? (DrivingVehicle.Damage) : (0.0f)); }
 		}
 
 		protected void ResetTrafficCamera()
@@ -287,7 +209,7 @@ namespace GTSim
 			const float fovY = 60.0f;
 			Vector3 position = Vector3.Zero;
 
-			if (positions.Count > 0)
+			if (false && positions.Count > 0)
 			{
 				Vector3 bmin = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 				Vector3 bmax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
@@ -304,8 +226,6 @@ namespace GTSim
 				var angle  = ((double)fovY / 180.0 * Math.PI);
 				var radius = (double)sceneRadius / Math.Cos(angle);
 				var height = radius * Math.Sin(angle);
-
-				var center = (bmax + bmin) / 2.0f;
 
 				position   = (bmax + bmin) / 2.0f;
 				position.Z = (float)height;
