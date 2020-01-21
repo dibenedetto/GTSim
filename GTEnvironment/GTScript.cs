@@ -26,13 +26,17 @@ public abstract class GTScript : Script
 	byte[]        buffer = null;
 	byte[]        check  = null;
 
+	DateTime      lastMessageTime = DateTime.MinValue;
+	List<string>  receiveList     = null;
+	DateTime      pingTime        = DateTime.MinValue;
+	bool          pingSent        = false;
 
 	public GTScript(GTEnvironment environment, int port = 8086)
 	{
 		this.environment = environment;
 		if (this.environment == null)
 		{
-			this.environment = new GTEnvironment(10.0f, 10.0f, 4);
+			this.environment = new GTEnvironment(10.0f, 10.0f, 1.0f, 4);
 		}
 
 		this.port   = port;
@@ -57,11 +61,6 @@ public abstract class GTScript : Script
 	{
 		get { return environment; }
 	}
-
-	List<string> receiveList = null;
-	DateTime pingTime = DateTime.MinValue;
-	bool pingSent = false;
-	DateTime lastMessageTime = DateTime.MinValue;
 
 	public void OnTick(object sender, EventArgs e)
 	{

@@ -11,6 +11,7 @@ namespace GTSim
 	{
 		private float          maxSecondsPerEpisode = 0.0f;
 		private float          framesPerSecond      = 0.0f;
+		private float          secondDuration       = 0.0f;
 		private int            recordedFramesCount  = 0;
 		private float          waitTime             = 0.0f;
 		private TimeController controller           = null;
@@ -18,14 +19,16 @@ namespace GTSim
 		private int            width                = 0;
 		private int            height               = 0;
 
-		public GTEnvironment(float maxSecondsPerEpisode, float framesPerSecond, int recordedFramesCount)
+		public GTEnvironment(float maxSecondsPerEpisode, float framesPerSecond, float secondDuration, int recordedFramesCount)
 			: base((int)(Math.Ceiling(maxSecondsPerEpisode * framesPerSecond)))
 		{
 			this.maxSecondsPerEpisode = maxSecondsPerEpisode;
 			this.framesPerSecond      = framesPerSecond;
+			this.secondDuration       = secondDuration;
+
 			this.recordedFramesCount  = recordedFramesCount;
 			this.waitTime             = 1.0f / framesPerSecond;
-			this.controller           = new TimeController();
+			this.controller           = new TimeController(1.0f / secondDuration);
 			this.frames               = new List<float[]>();
 
 			ExternalSceneMaskSize(out width, out height);
@@ -51,14 +54,19 @@ namespace GTSim
 			get { return maxSecondsPerEpisode; }
 		}
 
-		public int RecordedFramesCount
-		{
-			get { return recordedFramesCount; }
-		}
-
 		public float FramesPerSecond
 		{
 			get { return framesPerSecond; }
+		}
+
+		public float SecondDuration
+		{
+			get { return secondDuration; }
+		}
+
+		public int RecordedFramesCount
+		{
+			get { return recordedFramesCount; }
 		}
 
 		protected override void DoRestart()

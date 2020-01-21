@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System;
 
 using GTA;
 
@@ -7,7 +6,17 @@ namespace GTSim
 {
 	public class TimeController
 	{
-		private Stopwatch stopwatch = new Stopwatch();
+		public static TimeSpan Now
+		{
+			get { return World.CurrentTimeOfDay; }
+		}
+
+		public TimeController(float timeScale = 1.0f)
+		{
+			Scale = timeScale;
+		}
+
+		public float Scale { get; set; }
 
 		public void Reset()
 		{
@@ -24,19 +33,19 @@ namespace GTSim
 			Game.Pause(false);
 		}
 
-		public float Run(float seconds)
+		public void Run(float seconds)
 		{
-			long waitMs = (long)(seconds * 1000.0f);
+			Game.TimeScale = Scale;
 			Resume();
-			stopwatch.Restart();
-			while (stopwatch.ElapsedMilliseconds < waitMs)
+
+			var t0 = Now;
+			while ((Now - t0).TotalSeconds < seconds)
 			{
 				Script.Yield();
 			}
-			stopwatch.Stop();
-			//File.AppendAllText("sbuthre.txt", "++++: " + stopwatch.ElapsedMilliseconds + "\n");
+
 			Pause();
-			return (((float)(stopwatch.ElapsedMilliseconds)) / 1000.0f);
+			Game.TimeScale = 1.0f;
 		}
 	}
 }

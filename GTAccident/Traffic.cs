@@ -71,13 +71,12 @@ namespace GTSim
 
 			//if (false)
 			{
-				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * 50.0f;
+				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * 30.0f;
 				float   heading    = DrivingVehicle.Heading + 180.0f;
 				Model   model      = VehicleHash.Futo;
 				float   maxSpeedMS = Constants.MAX_SPEED;
 
-				var vehicle = new TrafficVehicle("pippo", model, position, heading, true, maxSpeedMS);
-				vehicle.Heading = heading;
+				var vehicle = new TrafficVehicle("pippo", model, position, heading, false, maxSpeedMS);
 
 				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
 				{
@@ -141,9 +140,9 @@ namespace GTSim
 
 			ResetTrafficCamera();
 
-			//ActivateGameCamera    ();
+			ActivateGameCamera    ();
 			//ActivateDrivingCamera ();
-			ActivateTrafficCamera ();
+			//ActivateTrafficCamera ();
 
 			return true;
 		}
