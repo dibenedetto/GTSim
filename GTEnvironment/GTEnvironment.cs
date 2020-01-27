@@ -13,28 +13,33 @@ namespace GTSim
 		private float          framesPerSecond      = 0.0f;
 		private float          timeScale            = 0.0f;
 		private int            recordedFramesCount  = 0;
+		private int            frameWidth           = 0;
+		private int            frameHeight          = 0;
 		private float          waitTime             = 0.0f;
 		private TimeController controller           = null;
 		private List<string>   frames               = null;
 		private int            width                = 0;
 		private int            height               = 0;
 
-		public GTEnvironment(float maxSecondsPerEpisode, float framesPerSecond, float timeScale, int recordedFramesCount)
+		public GTEnvironment(float maxSecondsPerEpisode, float framesPerSecond, float timeScale, int recordedFramesCount, int frameWidth, int frameHeight)
 			: base((int)(Math.Ceiling(maxSecondsPerEpisode * framesPerSecond)))
 		{
 			this.maxSecondsPerEpisode = maxSecondsPerEpisode;
 			this.framesPerSecond      = framesPerSecond;
 			this.timeScale            = timeScale;
-
 			this.recordedFramesCount  = recordedFramesCount;
+			this.frameWidth           = frameWidth;
+			this.frameHeight          = frameHeight;
+
+
 			this.waitTime             = 1.0f / framesPerSecond;
 			this.controller           = new TimeController(timeScale);
 			this.frames               = new List<string>();
 
 			ExternalSceneMaskSize(out width, out height);
 			//File.AppendAllText("sbuthre.txt", "size: " + width + " x " + height + "\n");
-			width  = 1280;
-			height = 720;
+			width  = 800;
+			height = 600;
 
 			// states
 			/////////////////////////////////////////////////////
@@ -44,7 +49,7 @@ namespace GTSim
 				{
 					Name  = "frames",
 					Type  = State.Descriptor.ItemType.Image,
-					Shape = new int[]{ recordedFramesCount, height, width },
+					Shape = new int[]{ recordedFramesCount, frameHeight, frameWidth },
 					Min   = 0.0f,
 					Max   = 64.0f
 				});
@@ -135,8 +140,6 @@ namespace GTSim
 
 		private void AcquireFrames(int framesCount)
 		{
-			int wh = width * height;
-
 			for (int i=0; i<framesCount; ++i)
 			{
 				controller.Run(waitTime);
@@ -146,7 +149,7 @@ namespace GTSim
 				BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, bitmap.PixelFormat);
 				ExternalGetColorBuffer(data.Scan0);
 				bitmap.UnlockBits(data);
-				string str = ImageUtility.ExportBase64(bitmap, ImageFormat.Jpeg, 50L);
+				string str = ImageUtility.ExportBase64(bitmap, frameWidth, frameHeight, ImageFormat.Jpeg, 50L);
 
 				frames.Add(str);
 			}

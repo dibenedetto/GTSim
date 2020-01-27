@@ -12,7 +12,7 @@ using GTSim;
 
 public class GTTest : GTScript
 {
-	public GTTest() : base(new GTAccident(5.0f, 10.0f, 1.0f, 1), 8086)
+	public GTTest() : base(new GTAccident(5.0f, 10.0f, 1.0f, 1, 320, 240), 8086)
 	{
 		this.KeyUp += OnKeyUp;
 	}

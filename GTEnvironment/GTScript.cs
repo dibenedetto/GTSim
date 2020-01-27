@@ -36,7 +36,7 @@ public abstract class GTScript : Script
 		this.environment = environment;
 		if (this.environment == null)
 		{
-			this.environment = new GTEnvironment(10.0f, 10.0f, 1.0f, 4);
+			this.environment = new GTEnvironment(10.0f, 10.0f, 1.0f, 1, 320, 240);
 		}
 
 		this.port   = port;

@@ -183,7 +183,7 @@ namespace GTSim
 
 		private void Normalize(Item.MinMax descriptor, Item.Value value)
 		{
-			if ((value != null) && (descriptor.Min <= descriptor.Max))
+			if ((value != null) && (value.Data != null) && (descriptor.Min <= descriptor.Max))
 			{
 				/*
 				float scale = 2.0f / (descriptor.Max - descriptor.Min);

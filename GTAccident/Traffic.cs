@@ -142,8 +142,8 @@ namespace GTSim
 
 			ResetTrafficCamera();
 
-			ActivateGameCamera    ();
-			//ActivateDrivingCamera ();
+			//ActivateGameCamera    ();
+			ActivateDrivingCamera ();
 			//ActivateTrafficCamera ();
 
 			return true;
@@ -178,8 +178,8 @@ namespace GTSim
 			}
 			drivingVehicle?.Update(now);
 
-			ResetTrafficCamera    ();
-			ActivateTrafficCamera ();
+			//ResetTrafficCamera    ();
+			//ActivateTrafficCamera ();
 		}
 
 		public float Damage
