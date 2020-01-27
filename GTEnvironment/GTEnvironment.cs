@@ -15,7 +15,7 @@ namespace GTSim
 		private int            recordedFramesCount  = 0;
 		private float          waitTime             = 0.0f;
 		private TimeController controller           = null;
-		private List<float[]>  frames               = null;
+		private List<string>   frames               = null;
 		private int            width                = 0;
 		private int            height               = 0;
 
@@ -29,7 +29,7 @@ namespace GTSim
 			this.recordedFramesCount  = recordedFramesCount;
 			this.waitTime             = 1.0f / framesPerSecond;
 			this.controller           = new TimeController(timeScale);
-			this.frames               = new List<float[]>();
+			this.frames               = new List<string>();
 
 			ExternalSceneMaskSize(out width, out height);
 			//File.AppendAllText("sbuthre.txt", "size: " + width + " x " + height + "\n");
@@ -43,10 +43,10 @@ namespace GTSim
 				AddStateDescriptor(new State.Descriptor
 				{
 					Name  = "frames",
-					Type  = State.Descriptor.ItemType.Continuous,
-					Shape = new int[]{ recordedFramesCount * 3, height, width },
-					Min   = -1.0f,
-					Max   = +1.0f
+					Type  = State.Descriptor.ItemType.Image,
+					Shape = new int[]{ recordedFramesCount, height, width },
+					Min   = 0.0f,
+					Max   = 64.0f
 				});
 			}
 			/////////////////////////////////////////////////////
@@ -121,18 +121,15 @@ namespace GTSim
 		{
 			if (recordedFramesCount <= 0) return null;
 
-			int      frameSize = 3 * height * width;
-			float [] values    = new float [recordedFramesCount * frameSize];
-			int      offset    = 0;
+			string [] values    = new string [recordedFramesCount];
 			for (int i=0; i<recordedFramesCount; ++i)
 			{
-				Array.Copy(frames[i], 0, values, offset, frameSize);
-				offset += frameSize;
+				values[i] = frames[i];
 			}
 
 			return new State.Value
 			{
-				Data = values
+				Image = values
 			};
 		}
 
@@ -144,25 +141,14 @@ namespace GTSim
 			{
 				controller.Run(waitTime);
 
-				var pixels = new byte [wh * 4];
 				var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
 				BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, bitmap.PixelFormat);
 				ExternalGetColorBuffer(data.Scan0);
-				Marshal.Copy(data.Scan0, pixels, 0, pixels.Length);
 				bitmap.UnlockBits(data);
+				string str = ImageUtility.ExportBase64(bitmap, ImageFormat.Jpeg, 50L);
 
-				var image = new float [wh * 3];
-				/*
-				for (int ii=0, j=0, kR=0*wh, kG=1*wh, kB=2*wh; ii<wh; i+=1, j+=4, kR+=1, kG+=1, kB+=1)
-				{
-					image[kR] = ((float)(pixels[j+0])) / 255.0f * 2.0f - 1.0f;
-					image[kG] = ((float)(pixels[j+1])) / 255.0f * 2.0f - 1.0f;
-					image[kB] = ((float)(pixels[j+2])) / 255.0f * 2.0f - 1.0f;
-				}
-				*/
-
-				frames.Add(image);
+				frames.Add(str);
 			}
 		}
 
