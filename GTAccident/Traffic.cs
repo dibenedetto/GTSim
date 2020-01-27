@@ -25,8 +25,6 @@ namespace GTSim
 		{
 			Stop();
 
-			Function.Call(Hash.CLEAR_AREA_OF_VEHICLES, 0.0f, 0.0f, 0.0f, 1000000.0f, false, false, false, false, false);
-
 			foreach (var vehicle in trafficVehicles)
 			{
 				vehicle.Delete();
@@ -58,6 +56,8 @@ namespace GTSim
 		{
 			Clear();
 
+			InitializeClearWorld();
+
 			//if (false)
 			{
 				Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
@@ -85,12 +85,14 @@ namespace GTSim
 					steeringAngle = 0.0f
 				});
 
+				/*
 				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
 				{
 					offset        = new TimeSpan(0, 0, 1),
 					speed         = 70.0f * Constants.KMH_TO_MS,
 					steeringAngle = -1.0f
 				});
+				*/
 
 				TrafficVehicles.Add(vehicle);
 			}
@@ -167,6 +169,8 @@ namespace GTSim
 
 		public void Update()
 		{
+			UpdateClearWorld();
+
 			var now = World.CurrentTimeOfDay;
 			foreach (var vehicle in trafficVehicles)
 			{
@@ -238,6 +242,53 @@ namespace GTSim
 			cameraPosition = position;
 			cameraRotation = new Vector3(-90.0f, 0.0f, 0.0f);
 			cameraFOV      = fovY;
+		}
+
+		protected void InitializeClearWorld()
+		{
+			Function.Call(Hash.ADD_SCENARIO_BLOCKING_AREA, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f, 0, 1, 1, 1);
+			Function.Call(Hash.SET_CREATE_RANDOM_COPS, false);
+			Function.Call(Hash.SET_RANDOM_BOATS, false);
+			Function.Call(Hash.SET_RANDOM_TRAINS, false);
+			Function.Call(Hash.SET_GARBAGE_TRUCKS, false);
+			Function.Call(Hash.DELETE_ALL_TRAINS);
+			Function.Call(Hash.SET_PED_POPULATION_BUDGET, 0);
+			Function.Call(Hash.SET_VEHICLE_POPULATION_BUDGET, 0);
+			Function.Call(Hash.SET_ALL_LOW_PRIORITY_VEHICLE_GENERATORS_ACTIVE, false);
+			Function.Call(Hash.SET_NUMBER_OF_PARKED_VEHICLES, 0);    //  -1, 0
+			Function.Call((Hash)0xF796359A959DF65D, false);  //Display distant vehicles
+			Function.Call(Hash.DISABLE_VEHICLE_DISTANTLIGHTS, true);
+
+			Ped[] all_ped = World.GetAllPeds();
+			foreach (Ped ped in all_ped)
+			{
+				ped.Delete();
+			}
+
+			Vehicle[] all_vecs = World.GetAllVehicles();
+			foreach (Vehicle vehicle in all_vecs)
+			{
+				vehicle.Delete();
+			}
+		}
+
+		protected void UpdateClearWorld()
+		{
+			Function.Call(Hash.SET_VEHICLE_POPULATION_BUDGET, 0);
+			Function.Call(Hash.SET_PED_POPULATION_BUDGET, 0);
+			Function.Call(Hash.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, 0f);
+			Function.Call(Hash.SET_RANDOM_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, 0f);
+			Function.Call(Hash.SET_PARKED_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, 0f);
+			Function.Call(Hash.STOP_ALARM, "PRISON_ALARMS", true);
+			Function.Call(Hash.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, "re_prison");
+			Function.Call(Hash.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, "re_prisonerlift");
+			Function.Call(Hash.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, "am_prison");
+			Function.Call(Hash.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, "re_lossantosintl");
+			Function.Call(Hash.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, "re_armybase");
+			Function.Call(Hash.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, "golf_ai_foursome");
+			Function.Call(Hash.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, "golf_ai_foursome_putting");
+			Function.Call((Hash)0x2F9A292AD0A3BD89);
+			Function.Call((Hash)0x5F3B7749C112D552);
 		}
 	}
 }

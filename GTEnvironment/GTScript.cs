@@ -62,7 +62,7 @@ public abstract class GTScript : Script
 		get { return environment; }
 	}
 
-	public void OnTick(object sender, EventArgs e)
+	private void OnTick(object sender, EventArgs e)
 	{
 		if (!WaitForClient()) return;
 
@@ -154,12 +154,12 @@ public abstract class GTScript : Script
 		}
 	}
 
-	public void OnKeyDown(object sender, KeyEventArgs e)
+	private void OnKeyDown(object sender, KeyEventArgs e)
 	{
 		;
 	}
 
-	public void OnKeyUp(object sender, KeyEventArgs e)
+	private void OnKeyUp(object sender, KeyEventArgs e)
 	{
 		if (e.KeyCode == Keys.NumPad0)
 		{

@@ -11,7 +11,7 @@ namespace GTSim
 	{
 		private float          maxSecondsPerEpisode = 0.0f;
 		private float          framesPerSecond      = 0.0f;
-		private float          secondDuration       = 0.0f;
+		private float          timeScale            = 0.0f;
 		private int            recordedFramesCount  = 0;
 		private float          waitTime             = 0.0f;
 		private TimeController controller           = null;
@@ -19,19 +19,22 @@ namespace GTSim
 		private int            width                = 0;
 		private int            height               = 0;
 
-		public GTEnvironment(float maxSecondsPerEpisode, float framesPerSecond, float secondDuration, int recordedFramesCount)
+		public GTEnvironment(float maxSecondsPerEpisode, float framesPerSecond, float timeScale, int recordedFramesCount)
 			: base((int)(Math.Ceiling(maxSecondsPerEpisode * framesPerSecond)))
 		{
 			this.maxSecondsPerEpisode = maxSecondsPerEpisode;
 			this.framesPerSecond      = framesPerSecond;
-			this.secondDuration       = secondDuration;
+			this.timeScale            = timeScale;
 
 			this.recordedFramesCount  = recordedFramesCount;
 			this.waitTime             = 1.0f / framesPerSecond;
-			this.controller           = new TimeController(1.0f / secondDuration);
+			this.controller           = new TimeController(timeScale);
 			this.frames               = new List<float[]>();
 
 			ExternalSceneMaskSize(out width, out height);
+			//File.AppendAllText("sbuthre.txt", "size: " + width + " x " + height + "\n");
+			width  = 1280;
+			height = 720;
 
 			// states
 			/////////////////////////////////////////////////////
@@ -59,9 +62,9 @@ namespace GTSim
 			get { return framesPerSecond; }
 		}
 
-		public float SecondDuration
+		public float TimeScale
 		{
-			get { return secondDuration; }
+			get { return timeScale; }
 		}
 
 		public int RecordedFramesCount
@@ -76,18 +79,18 @@ namespace GTSim
 
 		protected override Result DoReset()
 		{
-			controller.Resume();
+			controller.Resume ();
 			InitializeEpisode ();
-			controller.Pause();
+			controller.Pause  ();
 			InitializeFrames  ();
-			return GetResult();
+			return GetResult  ();
 		}
 
 		protected override Result DoStep(Action action)
 		{
-			PerformAction (action);
-			UpdateFrames  ();
-			return GetResult();
+			PerformAction    (action);
+			UpdateFrames     ();
+			return GetResult ();
 		}
 
 		private void InitializeFrames()
@@ -150,12 +153,14 @@ namespace GTSim
 				bitmap.UnlockBits(data);
 
 				var image = new float [wh * 3];
+				/*
 				for (int ii=0, j=0, kR=0*wh, kG=1*wh, kB=2*wh; ii<wh; i+=1, j+=4, kR+=1, kG+=1, kB+=1)
 				{
 					image[kR] = ((float)(pixels[j+0])) / 255.0f * 2.0f - 1.0f;
 					image[kG] = ((float)(pixels[j+1])) / 255.0f * 2.0f - 1.0f;
 					image[kB] = ((float)(pixels[j+2])) / 255.0f * 2.0f - 1.0f;
 				}
+				*/
 
 				frames.Add(image);
 			}

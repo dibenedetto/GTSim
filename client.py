@@ -7,7 +7,7 @@ import time
 
 GTSIM_ADDRESS     = '127.0.0.1'
 GTSIM_PORT        = 8086
-GTSIM_BUFFER_SIZE = 8 * 1024 * 1024
+GTSIM_BUFFER_SIZE = 256 * 1024 * 1024
 
 class GTEnvironment():
 	def __init__(self):
@@ -40,12 +40,14 @@ class GTEnvironment():
 
 			pong = b'{"Code":"Pong", "Data":null}'
 
+			#f = open("recv.txt", "a+")
 			while True:
 				rs, ws, xs = select.select([sock_comm, sock_quit], [], [])
 
 				if sock_comm in rs:
 					data   = sock_comm.recv(buffer_size)
 					str    = data.decode('utf-8')
+					#f.write(str + '\n\n')
 					result = json.loads(str)
 
 					if result['Code'] == 'Ping':
@@ -58,6 +60,7 @@ class GTEnvironment():
 					sock_quit.recv(1)
 					break
 
+			#f.close()
 			sock_quit.close()
 
 		def create_channel(address, port, info):
@@ -88,9 +91,10 @@ class GTEnvironment():
 		recv           = threading.Thread(target=recv_thread, args=(sock_comm, GTSIM_BUFFER_SIZE, q_recv,))
 		recv.start()
 
-		while (info[GTSIM_PORT + 1] == None): time.sleep(0.01)
-		while (info[GTSIM_PORT + 2] == None): time.sleep(0.01)
-		while (info[GTSIM_PORT + 3] == None): time.sleep(0.01)
+		sleep_s = 0.01
+		while (info[GTSIM_PORT + 1] == None): time.sleep(sleep_s)
+		while (info[GTSIM_PORT + 2] == None): time.sleep(sleep_s)
+		while (info[GTSIM_PORT + 3] == None): time.sleep(sleep_s)
 
 		self.sock_comm      = sock_comm
 		self.sock_quit_send = info[GTSIM_PORT + 1]
@@ -153,11 +157,13 @@ env = GTEnvironment()
 
 for i in range(1):
 	result = env.reset()
+	result['Data']['NextState'] = None
 	print(result)
 	done   = result['Data']['Terminated']
 	while not done:
 		action = { 'Values': [ { 'Data': [ 40.0 ] }, None, None ] }
 		result = env.step(action)
+		result['Data']['NextState'] = None
 		print(result)
 		done   = result['Data']['Terminated']
 
