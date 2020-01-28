@@ -6,20 +6,24 @@ import json
 import time
 import base64
 import io
-from PIL import Image
 
-GTSIM_ADDRESS     = '127.0.0.1'
-GTSIM_PORT        = 8086
-GTSIM_BUFFER_SIZE = 256 * 1024 * 1024
+import matplotlib.pyplot    as plt
+import matplotlib.animation as animation
+import numpy                as np
+from   PIL                  import Image
+
+GTSIM_DEFAULT_ADDRESS     = '127.0.0.1'
+GTSIM_DEFAULT_PORT        = 8086
+GTSIM_DEFAULT_BUFFER_SIZE = 256 * 1024 * 1024
 
 class GTEnvironment():
-	def __init__(self):
+	def __init__(self, address=GTSIM_DEFAULT_ADDRESS, port=GTSIM_DEFAULT_PORT, buffer_size=GTSIM_DEFAULT_BUFFER_SIZE):
 		def send_thread(sock_comm, buffer_size, q):
 			sock_quit = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			sock_quit.connect((GTSIM_ADDRESS, GTSIM_PORT + 1))
+			sock_quit.connect((address, port + 1))
 
 			sock_get = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			sock_get.connect((GTSIM_ADDRESS, GTSIM_PORT + 2))
+			sock_get.connect((address, port + 2))
 
 			while True:
 				rs, ws, xs = select.select([sock_get, sock_quit], [], [])
@@ -39,7 +43,7 @@ class GTEnvironment():
 
 		def recv_thread(sock_comm, buffer_size, q):
 			sock_quit = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			sock_quit.connect((GTSIM_ADDRESS, GTSIM_PORT + 3))
+			sock_quit.connect((address, port + 3))
 
 			pong = b'{"Code":"Pong", "Data":null}'
 
@@ -79,36 +83,37 @@ class GTEnvironment():
 			return sock
 
 		sock_comm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock_comm.connect((GTSIM_ADDRESS, GTSIM_PORT + 0))
+		sock_comm.connect((address, port + 0))
 
 		info = { }
 
-		sock_quit_send = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 1, info)
-		sock_get       = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 2, info)
+		sock_quit_send = create_channel(address, port + 1, info)
+		sock_get       = create_channel(address, port + 2, info)
 		q_send         = queue.Queue()
-		send           = threading.Thread(target=send_thread, args=(sock_comm, GTSIM_BUFFER_SIZE, q_send,))
+		send           = threading.Thread(target=send_thread, args=(sock_comm, buffer_size, q_send,))
 		send.start()
 
-		sock_quit_recv = create_channel(GTSIM_ADDRESS, GTSIM_PORT + 3, info)
+		sock_quit_recv = create_channel(address, port + 3, info)
 		q_recv         = queue.Queue()
-		recv           = threading.Thread(target=recv_thread, args=(sock_comm, GTSIM_BUFFER_SIZE, q_recv,))
+		recv           = threading.Thread(target=recv_thread, args=(sock_comm, buffer_size, q_recv,))
 		recv.start()
 
 		sleep_s = 0.01
-		while (info[GTSIM_PORT + 1] == None): time.sleep(sleep_s)
-		while (info[GTSIM_PORT + 2] == None): time.sleep(sleep_s)
-		while (info[GTSIM_PORT + 3] == None): time.sleep(sleep_s)
+		while (info[port + 1] == None): time.sleep(sleep_s)
+		while (info[port + 2] == None): time.sleep(sleep_s)
+		while (info[port + 3] == None): time.sleep(sleep_s)
 
 		self.sock_comm      = sock_comm
-		self.sock_quit_send = info[GTSIM_PORT + 1]
-		self.sock_get_send  = info[GTSIM_PORT + 2]
+		self.sock_quit_send = info[port + 1]
+		self.sock_get_send  = info[port + 2]
 		self.q_send         = q_send
 		self.send           = send
-		self.sock_quit_recv = info[GTSIM_PORT + 3]
+		self.sock_quit_recv = info[port + 3]
 		self.q_recv         = q_recv
 		self.recv           = recv
 		self.open           = True
 		self.image          = None
+		self.show           = None
 
 	def _send_message(self, code, data):
 		message = {
@@ -118,8 +123,8 @@ class GTEnvironment():
 		self.q_send.put(message)
 		self.sock_get_send.send(b'0')
 
-	def _display(self, result):
-		return
+	def _acquire_last_frame(self, result):
+		self.image = result['Data']['NextState']['Values'][0]['Image'][0]
 
 	def close(self):
 		if not self.open:
@@ -143,6 +148,7 @@ class GTEnvironment():
 		self.recv           = None
 		self.open           = False
 		self.image          = None
+		self.show           = None
 
 		return True
 
@@ -150,19 +156,40 @@ class GTEnvironment():
 		if not self.open:
 			return None
 		self._send_message('Reset', None)
-		message    = self.q_recv.get()
-		self.image = message['Data']['NextState']['Values'][0]['Image'][0]
+		message = self.q_recv.get()
+		self._acquire_last_frame(message)
 		return message
 
 	def step(self, action):
 		if not self.open:
 			return None
 		self._send_message('Step', action)
-		message    = self.q_recv.get()
-		self.image = message['Data']['NextState']['Values'][0]['Image'][0]
+		message = self.q_recv.get()
+		self._acquire_last_frame(message)
 		return message
 
 	def render(self):
-		decoded = base64.b64decode(self.image)
-		Image.open(io.BytesIO(decoded)).show()
-		return
+		if not self.open:
+			return False
+
+		if self.show is None:
+			w = 320
+			h = 240
+
+			fig = plt.figure()
+			im  = plt.imshow(np.random.randint(0, 256, size=(h,w)))
+
+			def animate(i, env):
+				encoded = env.image
+				if encoded is None:
+					return
+				decoded = base64.b64decode(encoded)
+				image   = Image.open(io.BytesIO(decoded))
+				im.set_array(image)
+
+			self.show = animation.FuncAnimation(fig, animate, fargs=(self,), interval=10)
+			plt.axis('off')
+			plt.show(block=False)
+
+		plt.pause(0.000001)
+		return True
