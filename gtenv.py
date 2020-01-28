@@ -113,7 +113,8 @@ class GTEnvironment():
 		self.recv           = recv
 		self.open           = True
 		self.image          = None
-		self.show           = None
+		self.fig            = None
+		self.img            = None
 
 	def _send_message(self, code, data):
 		message = {
@@ -148,7 +149,8 @@ class GTEnvironment():
 		self.recv           = None
 		self.open           = False
 		self.image          = None
-		self.show           = None
+		self.fig            = None
+		self.img            = None
 
 		return True
 
@@ -172,24 +174,22 @@ class GTEnvironment():
 		if not self.open:
 			return False
 
-		if self.show is None:
+		if self.fig is None:
 			w = 320
 			h = 240
-
-			fig = plt.figure()
-			im  = plt.imshow(np.random.randint(0, 256, size=(h,w)))
-
-			def animate(i, env):
-				encoded = env.image
-				if encoded is None:
-					return
-				decoded = base64.b64decode(encoded)
-				image   = Image.open(io.BytesIO(decoded))
-				im.set_array(image)
-
-			self.show = animation.FuncAnimation(fig, animate, fargs=(self,), interval=10)
+			self.fig = plt.figure()
+			self.img = plt.imshow(np.zeros((h,w)))
 			plt.axis('off')
 			plt.show(block=False)
 
+		encoded = self.image
+		if encoded is None:
+			return True
+		decoded = base64.b64decode(encoded)
+		image   = Image.open(io.BytesIO(decoded))
+
+		self.img.set_array(image)
+		self.fig.canvas.draw()
 		plt.pause(0.000001)
+
 		return True

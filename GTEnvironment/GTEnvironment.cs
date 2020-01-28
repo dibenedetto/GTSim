@@ -149,7 +149,7 @@ namespace GTSim
 				BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, bitmap.PixelFormat);
 				ExternalGetColorBuffer(data.Scan0);
 				bitmap.UnlockBits(data);
-				string str = ImageUtility.ExportBase64(bitmap, frameWidth, frameHeight, ImageFormat.Jpeg, 50L);
+				string str = ImageUtility.ExportBase64(bitmap, frameWidth, frameHeight, ImageFormat.Jpeg, 90L);
 
 				frames.Add(str);
 			}
