@@ -146,7 +146,7 @@ namespace GTSim
 
 		void Apply(Keyframe key)
 		{
-			if (key.speed         >=  0.0f) Speed         = key.speed;
+			if (key.speed         >   0.0f) Speed         = key.speed;
 			if (key.steeringAngle >= -1.0f) SteeringAngle = key.steeringAngle;
 		}
 

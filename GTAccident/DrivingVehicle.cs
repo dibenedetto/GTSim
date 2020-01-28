@@ -30,6 +30,7 @@ namespace GTSim
 				driver = null;
 			}
 			driver = Game.Player.Character;
+			driver.IsInvincible = true;
 			driver.SetIntoVehicle(vehicle, VehicleSeat.Driver);
 		}
 

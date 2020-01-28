@@ -69,7 +69,7 @@ namespace GTSim
 				DrivingVehicle = vehicle;
 			}
 
-			//if (false)
+			if (false)
 			{
 				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * 30.0f;
 				float   heading    = DrivingVehicle.Heading + 180.0f;

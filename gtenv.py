@@ -125,7 +125,9 @@ class GTEnvironment():
 		self.sock_get_send.send(b'0')
 
 	def _acquire_last_frame(self, result):
-		self.image = result['Data']['NextState']['Values'][0]['Image'][0]
+		frames     = result['Data']['NextState']['Values'][0]['Image']
+		frames[0]  = Image.open(io.BytesIO(base64.b64decode(frames[0])))
+		self.image = frames[0]
 
 	def close(self):
 		if not self.open:
@@ -182,13 +184,7 @@ class GTEnvironment():
 			plt.axis('off')
 			plt.show(block=False)
 
-		encoded = self.image
-		if encoded is None:
-			return True
-		decoded = base64.b64decode(encoded)
-		image   = Image.open(io.BytesIO(decoded))
-
-		self.img.set_array(image)
+		self.img.set_array(self.image)
 		self.fig.canvas.draw()
 		plt.pause(0.000001)
 

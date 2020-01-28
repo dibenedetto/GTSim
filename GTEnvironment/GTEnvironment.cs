@@ -47,7 +47,7 @@ namespace GTSim
 			{
 				AddStateDescriptor(new State.Descriptor
 				{
-					Name  = "frames",
+					Name  = "frame",
 					Type  = State.Descriptor.ItemType.Image,
 					Shape = new int[]{ recordedFramesCount, frameHeight, frameWidth },
 					Min   = 0.0f,
