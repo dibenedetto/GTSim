@@ -55,7 +55,7 @@ namespace GTSim
 		protected int            timelineIndex = -1;
 		protected double         timeFactor    = 1.0;
 
-		public TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeed)
+		public TrafficVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeed, bool overrideDamage = false)
 		{
 			var adjustedMaxSpeed     = Constants.MAX_SPEED_FRICTION_FACTOR * maxSpeed;
 			var adjustedCurrentSpeed = 0.0f;
@@ -84,15 +84,19 @@ namespace GTSim
 				steeringAngle = steeringAngle
 			};
 
+			OverrideDamage = overrideDamage;
+
 			Initialize();
 		}
 
-		public TrafficVehicle(Status status)
+		public TrafficVehicle(Status status, bool overrideDamage = false)
 		{
 			this.status = status.ShallowCopy();
 
 			vehicle = World.CreateVehicle(new Model(status.model), new Vector3(status.positionX, status.positionY, status.positionZ), status.heading);
 			vehicle.PlaceOnGround();
+
+			OverrideDamage = overrideDamage;
 
 			Initialize();
 		}
@@ -231,7 +235,7 @@ namespace GTSim
 
 			set
 			{
-				if (!IsDamaged)
+				if (OverrideDamage || !IsDamaged)
 				{
 					speed                = value;
 					vehicle.ForwardSpeed = value;
@@ -245,7 +249,7 @@ namespace GTSim
 
 			set
 			{
-				if (!IsDamaged)
+				if (OverrideDamage || !IsDamaged)
 				{
 					steeringAngle         = value;
 					vehicle.SteeringAngle = value;
@@ -283,6 +287,8 @@ namespace GTSim
 				return healt;
 			}
 		}
+
+		public bool OverrideDamage { get; private set; }
 
 		public float Damage
 		{

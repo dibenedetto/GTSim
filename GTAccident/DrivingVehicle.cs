@@ -8,16 +8,18 @@ namespace GTSim
 {
 	public class DrivingVehicle : TrafficVehicle
 	{
-		Camera camera;
+		Camera camera      = null;
+		bool   firstKeep   = true;
+		float  speedToKeep = 0.0f;
 
-		public DrivingVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS)
-			: base(name, model, position, heading, onStreet, maxSpeedMS)
+		public DrivingVehicle(string name, Model model, Vector3 position, float heading, bool onStreet, float maxSpeedMS, bool overrideDamage = true)
+			: base(name, model, position, heading, onStreet, maxSpeedMS, overrideDamage)
 		{
 			SetupDriver();
 		}
 
-		public DrivingVehicle(Status status)
-			: base(status)
+		public DrivingVehicle(Status status, bool overrideDamage = true)
+			: base(status, overrideDamage)
 		{
 			SetupDriver();
 		}
@@ -57,20 +59,36 @@ namespace GTSim
 			World.RenderingCamera = camera;
 		}
 
-		public void Noop(float value)
-		{
-			;
-		}
-
 		public void Thurst(float value)
 		{
-			//Function.Call(Hash._SET_CONTROL_NORMAL, 27, GTA.Control.VehicleAccelerate, value);
-			Speed = value;
+			firstKeep = true;
+			Speed     = value;
+		}
+
+		public void Accelerate(float value)
+		{
+			firstKeep = true;
+			Function.Call(Hash._SET_CONTROL_NORMAL, 27, GTA.Control.VehicleAccelerate, value);
 		}
 
 		public void Brake(float value)
 		{
+			firstKeep = true;
 			Function.Call(Hash._SET_CONTROL_NORMAL, 27, GTA.Control.VehicleBrake, value);
+		}
+
+		public void Keep()
+		{
+			if (firstKeep)
+			{
+				firstKeep   = false;
+				speedToKeep = Speed;
+			}
+
+			if (!IsDamaged)
+			{
+				Speed = speedToKeep;
+			}
 		}
 
 		public void Steer(float value)

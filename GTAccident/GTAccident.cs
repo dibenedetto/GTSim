@@ -25,16 +25,7 @@ namespace GTSim
 			/////////////////////////////////////////////////////
 			AddActionDescriptor(new Action.Descriptor
 			{
-				Name  = "thrust",
-				Type  = State.Descriptor.ItemType.Continuous,
-				Shape = new int[]{ 1 },
-				Min   = 0.0f,
-				Max   = Constants.MAX_SPEED
-			});
-
-			AddActionDescriptor(new Action.Descriptor
-			{
-				Name  = "brake",
+				Name  = "speed-keep",
 				Type  = State.Descriptor.ItemType.Continuous,
 				Shape = new int[]{ 1 },
 				Min   = 0.0f,
@@ -43,11 +34,47 @@ namespace GTSim
 
 			AddActionDescriptor(new Action.Descriptor
 			{
-				Name  = "steering-angle",
+				Name  = "speed-accelerate",
 				Type  = State.Descriptor.ItemType.Continuous,
 				Shape = new int[]{ 1 },
-				Min   = -1.0f,
-				Max   = +1.0f
+				Min   = 0.0f,
+				Max   = 1.0f
+			});
+
+			AddActionDescriptor(new Action.Descriptor
+			{
+				Name  = "speed-brake",
+				Type  = State.Descriptor.ItemType.Continuous,
+				Shape = new int[]{ 1 },
+				Min   = 0.0f,
+				Max   = 1.0f
+			});
+
+			AddActionDescriptor(new Action.Descriptor
+			{
+				Name  = "steer-center",
+				Type  = State.Descriptor.ItemType.Continuous,
+				Shape = new int[]{ 1 },
+				Min   = 0.0f,
+				Max   = 1.0f
+			});
+
+			AddActionDescriptor(new Action.Descriptor
+			{
+				Name  = "steer-left",
+				Type  = State.Descriptor.ItemType.Continuous,
+				Shape = new int[]{ 1 },
+				Min   = 0.0f,
+				Max   = 1.0f
+			});
+
+			AddActionDescriptor(new Action.Descriptor
+			{
+				Name  = "steer-right",
+				Type  = State.Descriptor.ItemType.Continuous,
+				Shape = new int[]{ 1 },
+				Min   = 0.0f,
+				Max   = 1.0f
 			});
 			/////////////////////////////////////////////////////
 
@@ -68,48 +95,66 @@ namespace GTSim
 
 		protected override void PerformAction(Action action)
 		{
-			const float thurstFactor = +1.0f;
-			const float brakeFactor  = +1.0f;
-			const float steerFactor  = +1.0f;
+			const float speedKeepFactor       = +0.0f;
+			const float speedAccelerateFactor = +1.0f;
+			const float speedBrakeFactor      = +1.0f;
+			const float steerCenterFactor     = +0.0f;
+			const float steerLeftFactor       = +1.0f;
+			const float steerRightFactor      = +1.0f;
 
 			actionValue = 0.0f;
 
 			{
-				// thrust
+				// keep
+				if (action.Values[0] != null)
 				{
-					float value = 0.0f;
-					if (action.Values[0] != null)
-					{
-						value = action.Values[0].Data[0];// / ActionDescriptors[0].Max;
-						actionValue += thurstFactor;
-					}
-					traffic.DrivingVehicle?.Thurst(value);
+					float value  = action.Values[0].Data[0];
+					actionValue += speedKeepFactor;
+					traffic.DrivingVehicle?.Keep();
+				}
+
+				// accelerate
+				if (action.Values[1] != null)
+				{
+					float value  = action.Values[1].Data[0];// / ActionDescriptors[0].Max;
+					actionValue += speedAccelerateFactor;
+					traffic.DrivingVehicle?.Accelerate(1.0f);
 				}
 
 				// brake
+				if (action.Values[2] != null)
 				{
-					float value = 0.0f;
-					if (action.Values[1] != null)
-					{
-						value = action.Values[1].Data[0];
-						actionValue += brakeFactor;
-					}
-					traffic.DrivingVehicle?.Brake(value);
+					float value  = action.Values[2].Data[0];
+					actionValue += speedBrakeFactor;
+					traffic.DrivingVehicle?.Brake(1.0f);
 				}
 
-				// steering
+				// center
+				if (action.Values[3] != null)
 				{
-					float value = 0.0f;
-					if (action.Values[2] != null)
-					{
-						value = action.Values[2].Data[0];
-						actionValue += steerFactor;
-					}
-					traffic.DrivingVehicle?.Steer(value);
+					float value  = action.Values[3].Data[0];
+					actionValue += steerCenterFactor;
+					traffic.DrivingVehicle?.Steer(0.0f);
+				}
+
+				// left
+				if (action.Values[4] != null)
+				{
+					float value  = action.Values[4].Data[0];
+					actionValue += steerLeftFactor;
+					traffic.DrivingVehicle?.Steer(-1.0f);
+				}
+
+				// right
+				if (action.Values[5] != null)
+				{
+					float value  = action.Values[5].Data[0];
+					actionValue += steerRightFactor;
+					traffic.DrivingVehicle?.Steer(+1.0f);
 				}
 			}
 
-			actionValue /= (thurstFactor + brakeFactor + steerFactor);
+			actionValue /= (speedKeepFactor + speedAccelerateFactor + speedBrakeFactor + steerCenterFactor + steerLeftFactor + steerRightFactor);
 
 			traffic.Update();
 		}

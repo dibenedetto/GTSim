@@ -60,8 +60,8 @@ namespace GTSim
 
 			//if (false)
 			{
-				Vector3 position   = Game.Player.Character.Position + Game.Player.Character.ForwardVector * 10.0f;
-				float   heading    = Game.Player.Character.Heading + 0.0f;
+				Vector3 position   = Game.Player.Character.Position;
+				float   heading    = Game.Player.Character.Heading;
 				Model   model      = VehicleHash.Futo;
 				float   maxSpeedMS = Constants.MAX_SPEED;
 
@@ -69,7 +69,7 @@ namespace GTSim
 				DrivingVehicle = vehicle;
 			}
 
-			if (false)
+			//if (false)
 			{
 				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * 30.0f;
 				float   heading    = DrivingVehicle.Heading + 180.0f;
@@ -97,7 +97,13 @@ namespace GTSim
 				TrafficVehicles.Add(vehicle);
 			}
 
-			return Start();
+			bool res = Start();
+
+			{
+				DrivingVehicle?.Thurst(70.0f * Constants.KMH_TO_MS);
+			}
+
+			return res;
 		}
 
 		public void ActivateGameCamera()

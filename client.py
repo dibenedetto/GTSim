@@ -12,7 +12,7 @@ def save(result, step):
 
 env = gtenv.GTEnvironment()
 
-for i in range(1):
+for i in range(10):
 	result = env.reset()
 	step   = 0
 	done   = result['Data']['Terminated']
@@ -21,7 +21,7 @@ for i in range(1):
 		env.render()
 
 		step   += 1
-		action  = { 'Values': [ { 'Data': [ 40.0 ] }, None, None ] }
+		action  = { 'Values': [ { 'Data': [ 0.0 ] }, None, None, None, None, None ] }
 		result  = env.step(action)
 		done    = result['Data']['Terminated']
 
