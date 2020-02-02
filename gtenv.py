@@ -8,7 +8,6 @@ import base64
 import io
 
 import matplotlib.pyplot    as plt
-import matplotlib.animation as animation
 import numpy                as np
 from   PIL                  import Image
 
@@ -18,12 +17,14 @@ GTSIM_DEFAULT_BUFFER_SIZE = 256 * 1024 * 1024
 
 class GTEnvironment():
 	def __init__(self, address=GTSIM_DEFAULT_ADDRESS, port=GTSIM_DEFAULT_PORT, buffer_size=GTSIM_DEFAULT_BUFFER_SIZE):
+		GTSIM_LOCAL_ADDRESS = '127.0.0.1'
+
 		def send_thread(sock_comm, buffer_size, q):
 			sock_quit = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			sock_quit.connect((address, port + 1))
+			sock_quit.connect((GTSIM_LOCAL_ADDRESS, port + 1))
 
 			sock_get = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			sock_get.connect((address, port + 2))
+			sock_get.connect((GTSIM_LOCAL_ADDRESS, port + 2))
 
 			while True:
 				rs, ws, xs = select.select([sock_get, sock_quit], [], [])
@@ -43,7 +44,7 @@ class GTEnvironment():
 
 		def recv_thread(sock_comm, buffer_size, q):
 			sock_quit = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			sock_quit.connect((address, port + 3))
+			sock_quit.connect((GTSIM_LOCAL_ADDRESS, port + 3))
 
 			pong = b'{"Code":"Pong", "Data":null}'
 
@@ -52,10 +53,18 @@ class GTEnvironment():
 				rs, ws, xs = select.select([sock_comm, sock_quit], [], [])
 
 				if sock_comm in rs:
-					data   = sock_comm.recv(buffer_size)
-					str    = data.decode('utf-8')
+					dstr = ''
+					while True:
+						data  = sock_comm.recv(buffer_size)
+						dstr += data.decode('utf-8')
+						try:
+							result = json.loads(dstr)
+						except:
+							continue
+						break
+
 					#f.write(str + '\n\n')
-					result = json.loads(str)
+					result = json.loads(dstr)
 
 					if result['Code'] == 'Ping':
 						sock_comm.send(pong)
@@ -70,13 +79,13 @@ class GTEnvironment():
 			#f.close()
 			sock_quit.close()
 
-		def create_channel(address, port, info):
+		def create_channel(port, info):
 			def sock_accept(sock, info, port):
 				info[port], addr = sock.accept()
 
 			info[port] = None
 			sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			sock.bind((address, port))
+			sock.bind((GTSIM_LOCAL_ADDRESS, port))
 			sock.listen()
 			task = threading.Thread(target=sock_accept, args=(sock, info, port,))
 			task.start()
@@ -87,13 +96,13 @@ class GTEnvironment():
 
 		info = { }
 
-		sock_quit_send = create_channel(address, port + 1, info)
-		sock_get       = create_channel(address, port + 2, info)
+		sock_quit_send = create_channel(port + 1, info)
+		sock_get       = create_channel(port + 2, info)
 		q_send         = queue.Queue()
 		send           = threading.Thread(target=send_thread, args=(sock_comm, buffer_size, q_send,))
 		send.start()
 
-		sock_quit_recv = create_channel(address, port + 3, info)
+		sock_quit_recv = create_channel(port + 3, info)
 		q_recv         = queue.Queue()
 		recv           = threading.Thread(target=recv_thread, args=(sock_comm, buffer_size, q_recv,))
 		recv.start()
@@ -115,6 +124,29 @@ class GTEnvironment():
 		self.image          = None
 		self.fig            = None
 		self.img            = None
+		self.frameSize      = None
+
+		self._acquire_frame_size()
+
+	def _acquire_frame_size(self):
+		self.frameSize = [ 320, 240 ]
+		expl  = self.explain()
+		descs = expl['Data']['StateDescriptors']
+		for i in range(len(descs)):
+			desc = descs[i]
+			if desc['Name'] != 'frame':
+				continue
+			shape = desc['Shape']
+			self.frameSize[0] = shape[2]
+			self.frameSize[1] = shape[1]
+			break
+
+		self.image = np.zeros((self.frame_height(), self.frame_width(), self.frame_channels()))
+
+	def _acquire_last_frame(self, result):
+		frames     = result['Data']['NextState']['Values'][0]['Image']
+		frames[0]  = Image.open(io.BytesIO(base64.b64decode(frames[0])))
+		self.image = frames[0]
 
 	def _send_message(self, code, data):
 		message = {
@@ -123,11 +155,6 @@ class GTEnvironment():
 		}
 		self.q_send.put(message)
 		self.sock_get_send.send(b'0')
-
-	def _acquire_last_frame(self, result):
-		frames     = result['Data']['NextState']['Values'][0]['Image']
-		frames[0]  = Image.open(io.BytesIO(base64.b64decode(frames[0])))
-		self.image = frames[0]
 
 	def close(self):
 		if not self.open:
@@ -156,6 +183,28 @@ class GTEnvironment():
 
 		return True
 
+	def explain(self):
+		if not self.open:
+			return None
+		self._send_message('Explain', None)
+		message = self.q_recv.get()
+		return message
+
+	def frame_count(self):
+		return 1
+
+	def frame_channels(self):
+		return 3
+
+	def frame_width(self):
+		return self.frameSize[0]
+
+	def frame_height(self):
+		return self.frameSize[1]
+
+	def last_frame_image(self):
+		return self.image
+
 	def reset(self):
 		if not self.open:
 			return None
@@ -177,10 +226,8 @@ class GTEnvironment():
 			return False
 
 		if self.fig is None:
-			w = 320
-			h = 240
 			self.fig = plt.figure()
-			self.img = plt.imshow(np.zeros((h,w)))
+			self.img = plt.imshow(np.zeros((self.frameSize[1], self.frameSize[0])))
 			plt.axis('off')
 			plt.show(block=False)
 

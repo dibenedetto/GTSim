@@ -49,7 +49,7 @@ namespace GTSim
 				{
 					Name  = "frame",
 					Type  = State.Descriptor.ItemType.Image,
-					Shape = new int[]{ recordedFramesCount, frameHeight, frameWidth },
+					Shape = new int[]{ recordedFramesCount * 3, frameHeight, frameWidth },
 					Min   = 0.0f,
 					Max   = 64.0f
 				});
