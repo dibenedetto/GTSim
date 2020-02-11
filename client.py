@@ -1,5 +1,5 @@
 from   tensorflow.keras.models         import Sequential
-from   tensorflow.keras.layers         import Dense, Conv2D, Flatten
+from   tensorflow.keras.layers         import Conv2D, Dense, Flatten
 from   tensorflow.keras.optimizers     import RMSprop, Adam
 
 import numpy                as np
@@ -7,8 +7,15 @@ import matplotlib.pyplot    as plt
 import matplotlib.animation as animation
 
 import gtenv                as gt
-from zoopy                import *
+from   zoopy                import *
 
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+import tensorflow as tf
+
+print(tf.compat.v1.test.is_gpu_available())
+	
 '''
 actions:
 	0 = "speed-keep",
@@ -95,7 +102,9 @@ class ZGTEnvironment(Environment):
 
 def keras_model_build(parameters):
 	model = Sequential()
-	model.add(Conv2D(8, kernel_size=3, activation='relu', input_shape=parameters['state_size']))
+	model.add(Conv2D(8, kernel_size=3, strides=2, activation='relu', input_shape=parameters['state_size']))
+	model.add(Conv2D(8, kernel_size=3, strides=2, activation='relu'))
+	model.add(Conv2D(8, kernel_size=3, strides=2, activation='relu'))
 	model.add(Flatten())
 	model.add(Dense(parameters['action_size'], activation='softmax'))
 
@@ -107,7 +116,7 @@ def keras_model_build(parameters):
 	return model
 
 
-env = ZGTEnvironment(address='146.48.87.139', port=8086)
+env = ZGTEnvironment(address='127.0.0.1', port=8086)
 parameters = {
 	'state_size'  : env.state_size  (),
 	'action_size' : env.action_size ()

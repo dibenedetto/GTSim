@@ -38,8 +38,8 @@ namespace GTSim
 
 			ExternalSceneMaskSize(out width, out height);
 			//File.AppendAllText("sbuthre.txt", "size: " + width + " x " + height + "\n");
-			//width  = 800;
-			//height = 600;
+			width  = 800;
+			height = 600;
 
 			// states
 			/////////////////////////////////////////////////////
