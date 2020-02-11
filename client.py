@@ -1,14 +1,13 @@
-from   keras.models         import Sequential
-from   keras.layers         import Dense, Conv2D, Flatten
-from   keras.optimizers     import RMSprop, Adam
-from   keras                import backend as K
+from   tensorflow.keras.models         import Sequential
+from   tensorflow.keras.layers         import Dense, Conv2D, Flatten
+from   tensorflow.keras.optimizers     import RMSprop, Adam
 
 import numpy                as np
 import matplotlib.pyplot    as plt
 import matplotlib.animation as animation
 
 import gtenv                as gt
-import zoopy                as zp
+from zoopy                import *
 
 '''
 actions:
@@ -32,7 +31,7 @@ mapping:
 
 '''
 
-class ZGTEnvironment(zp.Environment):
+class ZGTEnvironment(Environment):
 	def __init__(self, address='127.0.0.1', port=8086):
 		super(ZGTEnvironment, self).__init__()
 
@@ -65,7 +64,7 @@ class ZGTEnvironment(zp.Environment):
 	def reset(self, episode=None):
 		result = self._env.reset()
 		self._add_frame(result)
-		return zp.State(state=self._frames)
+		return State(state=self._frames)
 
 	def step(self, episode=None, step=None, actions=None):
 		apply  = { 'Data': [ 0.0 ] }
@@ -83,8 +82,8 @@ class ZGTEnvironment(zp.Environment):
 		reward = result['Data']['Reward'    ]
 		done   = result['Data']['Terminated']
 
-		res        = zp.Result()
-		res.state  = zp.State(state=self._frames)
+		res        = Result()
+		res.state  = State(state=self._frames)
 		res.reward = [reward]
 		res.done   = done
 		res.info   = None
@@ -108,14 +107,15 @@ def keras_model_build(parameters):
 	return model
 
 
-env = ZGTEnvironment(address='127.0.0.1', port=8086)
+env = ZGTEnvironment(address='146.48.87.139', port=8086)
 parameters = {
 	'state_size'  : env.state_size  (),
 	'action_size' : env.action_size ()
 }
 
-agent = zp.keras_dqn_agent(keras_model_build, parameters=parameters)
+agent = keras_dqn_agent(keras_model_build, parameters=parameters)
 
+'''
 episodes  = []
 rewards   = []
 means     = []
@@ -155,7 +155,10 @@ class Callbacks(zp.EventListener):
 ani = animation.FuncAnimation(fig, animate, interval=1000)
 plt.show(block=False)
 
-zp.simulate(environment=env, agents=[agent], episodes=10, listeners=[Callbacks()], disable_render=False, plt=plt)
+zp.simulate(environment=env, agents=[agent], episodes=1, listeners=[Callbacks()], disable_render=False, plt=plt)
+'''
+
+simulate(environment=env, agents=[agent], episodes=1, disable_render=True)
 
 
 

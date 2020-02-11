@@ -48,7 +48,6 @@ class GTEnvironment():
 
 			pong = b'{"Code":"Pong", "Data":null}'
 
-			#f = open("recv.txt", "a+")
 			while True:
 				rs, ws, xs = select.select([sock_comm, sock_quit], [], [])
 
@@ -63,9 +62,6 @@ class GTEnvironment():
 							continue
 						break
 
-					#f.write(str + '\n\n')
-					result = json.loads(dstr)
-
 					if result['Code'] == 'Ping':
 						sock_comm.send(pong)
 						continue
@@ -76,7 +72,6 @@ class GTEnvironment():
 					sock_quit.recv(1)
 					break
 
-			#f.close()
 			sock_quit.close()
 
 		def create_channel(port, info):
