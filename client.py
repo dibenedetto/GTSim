@@ -116,7 +116,7 @@ def keras_model_build(parameters):
 	return model
 
 
-env = ZGTEnvironment(address='127.0.0.1', port=8086)
+env = ZGTEnvironment(address='146.48.87.139', port=8086)
 parameters = {
 	'state_size'  : env.state_size  (),
 	'action_size' : env.action_size ()
@@ -167,7 +167,7 @@ plt.show(block=False)
 zp.simulate(environment=env, agents=[agent], episodes=1, listeners=[Callbacks()], disable_render=False, plt=plt)
 '''
 
-simulate(environment=env, agents=[agent], episodes=1, disable_render=True)
+simulate(environment=env, agents=[agent], episodes=1, disable_render=False)
 
 
 
