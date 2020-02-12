@@ -79,6 +79,7 @@ public abstract class GTScript : Script
 				var elapsed = (now - pingTime).TotalSeconds;
 				if (elapsed > respondToPingTime)
 				{
+					File.AppendAllText("sbuthre.txt", "ping not answered\n");
 					ApplyQuit();
 				}
 			}
@@ -312,12 +313,14 @@ public abstract class GTScript : Script
 
 	private void ApplyExit()
 	{
+		File.AppendAllText("sbuthre.txt", "apply exit\n");
 		FinalizeServer();
 		Abort();
 	}
 
 	private void ApplyQuit()
 	{
+		File.AppendAllText("sbuthre.txt", "apply quit\n");
 		pingSent = false;
 		stream   = null;
 		client   = null;
@@ -342,6 +345,7 @@ public abstract class GTScript : Script
 
 	private object ApplyReset()
 	{
+		File.AppendAllText("sbuthre.txt", "apply reset\n");
 		Result result = environment.Reset();
 		return MakeMessage("Reset", result);
 	}

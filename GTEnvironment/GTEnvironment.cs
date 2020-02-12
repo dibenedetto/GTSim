@@ -31,7 +31,6 @@ namespace GTSim
 			this.frameWidth           = frameWidth;
 			this.frameHeight          = frameHeight;
 
-
 			this.waitTime             = 1.0f / framesPerSecond;
 			this.controller           = new TimeController(timeScale);
 			this.frames               = new List<string>();

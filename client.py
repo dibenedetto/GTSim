@@ -10,7 +10,7 @@ import gtenv                as gt
 from   zoopy                import *
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 import tensorflow as tf
 
@@ -102,9 +102,9 @@ class ZGTEnvironment(Environment):
 
 def keras_model_build(parameters):
 	model = Sequential()
-	model.add(Conv2D(8, kernel_size=3, strides=2, activation='relu', input_shape=parameters['state_size']))
-	model.add(Conv2D(8, kernel_size=3, strides=2, activation='relu'))
-	model.add(Conv2D(8, kernel_size=3, strides=2, activation='relu'))
+	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu', input_shape=parameters['state_size']))
+	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
+	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
 	model.add(Flatten())
 	model.add(Dense(parameters['action_size'], activation='softmax'))
 
@@ -116,7 +116,8 @@ def keras_model_build(parameters):
 	return model
 
 
-env = ZGTEnvironment(address='146.48.87.139', port=8086)
+#env = ZGTEnvironment(address='146.48.87.139', port=8086)
+env = ZGTEnvironment(address='127.0.0.1', port=8086)
 parameters = {
 	'state_size'  : env.state_size  (),
 	'action_size' : env.action_size ()
@@ -124,7 +125,6 @@ parameters = {
 
 agent = keras_dqn_agent(keras_model_build, parameters=parameters)
 
-'''
 episodes  = []
 rewards   = []
 means     = []
@@ -141,13 +141,27 @@ def animate(frame):
 	ax1.plot(episodes, rewards, color='orange')
 	ax1.plot(episodes, means  , color='blue'  )
 
-class Callbacks(zp.EventListener):
-	def episode_end(self, episode=None):
+class Callbacks(EventListener):
+	def episode_begin(self, episode):
+		return
+		print('episode_begin          : ' + str(episode))
+
+	def episode_step_begin(self, episode, step):
+		return
+		print('    episode_step_begin : ' + str(episode) + ' -- ' + str(step))
+
+	def episode_step_end(self, episode, step):
+		return
+		print('    episode_step_end   : ' + str(episode) + ' -- ' + str(step))
+
+	def episode_end(self, episode):
 		global episodes
 		global rewards
 		global means
 		global acc_mean
 		global acc_count
+
+		#print('episode_end            : ' + str(episode))
 
 		count = 10
 		if acc_count > count:
@@ -164,27 +178,4 @@ class Callbacks(zp.EventListener):
 ani = animation.FuncAnimation(fig, animate, interval=1000)
 plt.show(block=False)
 
-zp.simulate(environment=env, agents=[agent], episodes=1, listeners=[Callbacks()], disable_render=False, plt=plt)
-'''
-
-simulate(environment=env, agents=[agent], episodes=1, disable_render=False)
-
-
-
-'''
-for i in range(1):
-	result = env.reset()
-	done   = result['Data']['Terminated']
-
-	while not done:
-		env.render()
-
-		image  = result['Data']['NextState']['Values'][0]['Image']
-		frame  = np.asarray(image, dtype=np.uint8).astype(np.float32) * (2.0 / 255.0) - 1.0
-		frames = np.concatenate((frames[3:, :, :], frame), axis=0)
-		action = compute_action(frames)
-		result = env.step(action)
-		done   = result['Data']['Terminated']
-
-env.close()
-'''
+simulate(environment=env, agents=[agent], episodes=1000, listeners=[Callbacks()], disable_render=False)
