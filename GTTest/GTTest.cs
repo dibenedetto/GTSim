@@ -12,7 +12,10 @@ using GTSim;
 
 public class GTTest : GTScript
 {
-	public GTTest() : base(new GTAccident(5.0f, 10.0f, 1.0f, 1, 320, 240), 8086)
+	public GTTest() : base(new GTAccident(5.0f, 10.0f, 1.0f, 1, 64, 64), 8086)
+//public class GTTest : Script
+//{
+	//public GTTest()
 	{
 		//this.Tick  += OnTick;
 		//this.KeyUp += OnKeyUp;
@@ -22,7 +25,14 @@ public class GTTest : GTScript
 
 	private void OnTick(object sender, EventArgs e)
 	{
+		if (Game.IsKeyPressed(Keys.NumPad9))
+		{
+			File.AppendAllText("sbuthre.txt", "position: " + Game.Player.Character.Position + "\n");
+		}
+
 		if (vehicle == null) return;
+
+		Traffic.UpdateClearWorld();
 
 		vehicle.Update(TimeController.Now);
 
@@ -39,7 +49,7 @@ public class GTTest : GTScript
 		}
 		else
 		{
-			vehicle.Keep();
+			//vehicle.Keep();
 		}
 
 		if (Game.IsKeyPressed(Keys.NumPad4))
@@ -58,26 +68,53 @@ public class GTTest : GTScript
 		{
 			case Keys.NumPad0:
 				{
-					Vector3 position   = Game.Player.Character.Position;
-					float   heading    = Game.Player.Character.Heading;
+					Traffic.InitializeClearWorld();
+
+					/*
+					//Vector3 position   = Game.Player.Character.Position;
+					//float   heading    = Game.Player.Character.Heading;
+					Vector3 position   = new Vector3(-1306.281f, -2875.058f, 13.42174f);
+					float   heading    = 58.0f;
 					Model   model      = VehicleHash.Futo;
 					float   maxSpeedMS = Constants.MAX_SPEED;
 
 					vehicle?.Delete();
-					vehicle = new DrivingVehicle("pluto", model, position, heading, true, maxSpeedMS);
-					vehicle.Thurst(10.0f);
-				}
-				break;
+					vehicle = new DrivingVehicle("pluto", model, position, heading, false, maxSpeedMS);
+					//vehicle.Thurst(10.0f);
+					*/
 
-			case Keys.NumPad1:
-				{
-					vehicle?.Delete();
-				}
-				break;
+					//if (false)
+					{
+						//Vector3 position   = Game.Player.Character.Position;
+						//float   heading    = Game.Player.Character.Heading;
+						Vector3 position = new Vector3(-1306.281f, -2875.058f, 13.42174f);
+						float   heading = 58.0f;
+						Model   model = VehicleHash.Futo;
+						bool    onStreet = false;
+						float   maxSpeedMS = Constants.MAX_SPEED;
 
-			case Keys.NumPad2:
-				{
-					vehicle?.Thurst(10.0f);
+						var dv = new DrivingVehicle("pluto", model, position, heading, onStreet, maxSpeedMS);
+						vehicle = dv;
+					}
+
+					var rand = new Random();
+
+					//if (false)
+					{
+						float maxDistance = 0.0f;
+						float distance = maxDistance * 1.0f;
+						float maxDrift = 4.0f;
+						float drift = -maxDrift + (2.0f * maxDrift * ((float)(rand.NextDouble())));
+						drift = maxDrift;
+
+						Vector3 position = vehicle.Position + vehicle.Vehicle.ForwardVector * distance + vehicle.Vehicle.RightVector * drift;
+						float heading = vehicle.Heading + 180.0f;
+						Model model = VehicleHash.Futo;
+						bool onStreet = false;
+						float maxSpeedMS = Constants.MAX_SPEED;
+
+						var tv = new TrafficVehicle("pippo", model, position, heading, onStreet, maxSpeedMS);
+					}
 				}
 				break;
 
