@@ -75,7 +75,7 @@ namespace GTSim
 
 			//if (false)
 			{
-				float   distanceMin = 10.0f;
+				float   distanceMin = 20.0f;
 				float   distanceMax = distanceMin + 30.0f;
 				float   distance    = distanceMin + (distanceMax - distanceMin) * ((float)(rand.NextDouble()));
 				float   maxDrift    = 4.0f;
