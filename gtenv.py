@@ -13,7 +13,7 @@ from   PIL                  import Image
 
 GTSIM_DEFAULT_ADDRESS     = '127.0.0.1'
 GTSIM_DEFAULT_PORT        = 8086
-GTSIM_DEFAULT_BUFFER_SIZE = 256 * 1024 * 1024
+GTSIM_DEFAULT_BUFFER_SIZE = 16 * 1024 * 1024
 
 class GTEnvironment():
 	def __init__(self, address=GTSIM_DEFAULT_ADDRESS, port=GTSIM_DEFAULT_PORT, buffer_size=GTSIM_DEFAULT_BUFFER_SIZE):

@@ -103,9 +103,10 @@ class ZGTEnvironment(Environment):
 def keras_model_build(parameters):
 	model = Sequential()
 	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu', input_shape=parameters['state_size']))
-	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
-	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
+	#model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
+	#model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
 	model.add(Flatten())
+	#model.add(Dense(16, activation='relu'))
 	model.add(Dense(parameters['action_size'], activation='softmax'))
 
 	learning_rate = 0.001
@@ -125,6 +126,7 @@ parameters = {
 
 agent = keras_dqn_agent(keras_model_build, parameters=parameters)
 
+'''
 episodes  = []
 rewards   = []
 means     = []
@@ -179,3 +181,6 @@ ani = animation.FuncAnimation(fig, animate, interval=1000)
 plt.show(block=False)
 
 simulate(environment=env, agents=[agent], episodes=1000, listeners=[Callbacks()], disable_render=False)
+'''
+
+simulate(environment=env, agents=[agent], episodes=1000, disable_render=False)
