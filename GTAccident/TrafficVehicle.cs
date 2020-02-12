@@ -261,6 +261,7 @@ namespace GTSim
 		{
 			get
 			{
+				/*
 				const float engineMinHealt  = -4000.0f;
 				const float engineMaxHealt  = +1000.0f;
 				const float engineFactor    = 1.0f;
@@ -283,6 +284,26 @@ namespace GTSim
 				float veh    = (vehicle.HealthFloat  - vehicleMinHealt) * vehicleScale;
 
 				float healt  = globalFactor  * (engine + body + veh);
+
+				string str = "";
+				str += "engine  : " + engine + " -- " + vehicle.EngineHealth + " -- " + engineMinHealt  + " -- " + engineMaxHealt  + "\n";
+				str += "body    : " + body   + " -- " + vehicle.BodyHealth   + " -- " + bodyMinHealt    + " -- " + bodyMaxHealt    + "\n";
+				str += "vehicle : " + veh    + " -- " + vehicle.HealthFloat  + " -- " + vehicleMinHealt + " -- " + vehicleMaxHealt + "\n";
+				str += "healt   : " + healt  + "\n";
+				str += "\n";
+
+				File.AppendAllText("sbuthre.txt", str);
+				*/
+
+				float vehicleMinHealt = +0.0f;
+				float vehicleMaxHealt = vehicle.MaxHealthFloat;
+				float vehicleFactor   = 1.0f;
+				float vehicleScale    = vehicleFactor / (vehicleMaxHealt - vehicleMinHealt);
+
+				float healt = (vehicle.HealthFloat  - vehicleMinHealt) * vehicleScale;
+
+				//string str = "healt: " + healt  + "\n";
+				//File.AppendAllText("sbuthre.txt", str);
 
 				return healt;
 			}

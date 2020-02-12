@@ -15,6 +15,7 @@ namespace GTSim
 		DrivingVehicle       drivingVehicle  = null;
 		List<TrafficVehicle> trafficVehicles = new List<TrafficVehicle>();
 		bool                 started         = false;
+		Random               rand            = new Random(12345);
 
 		public Traffic()
 		{
@@ -60,23 +61,33 @@ namespace GTSim
 
 			//if (false)
 			{
-				Vector3 position   = Game.Player.Character.Position;
-				float   heading    = Game.Player.Character.Heading;
+				//Vector3 position   = Game.Player.Character.Position;
+				//float   heading    = Game.Player.Character.Heading;
+				Vector3 position   = new Vector3(-1306.281f, -2875.058f, 13.42174f);
+				float   heading    = 58.0f;
 				Model   model      = VehicleHash.Futo;
+				bool    onStreet   = false;
 				float   maxSpeedMS = Constants.MAX_SPEED;
 
-				var vehicle = new DrivingVehicle("pluto", model, position, heading, true, maxSpeedMS);
+				var vehicle = new DrivingVehicle("pluto", model, position, heading, onStreet, maxSpeedMS);
 				DrivingVehicle = vehicle;
 			}
 
 			//if (false)
 			{
-				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * 30.0f;
+				float   distanceMin = 20.0f;
+				float   distanceMax = distanceMin + 30.0f;
+				float   distance    = distanceMin + (distanceMax - distanceMin) * ((float)(rand.NextDouble()));
+				float   maxDrift    = 4.0f;
+				float   drift       = -maxDrift + (2.0f * maxDrift * ((float)(rand.NextDouble())));
+
+				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * distance + DrivingVehicle.Vehicle.RightVector * drift;
 				float   heading    = DrivingVehicle.Heading + 180.0f;
 				Model   model      = VehicleHash.Futo;
+				bool    onStreet   = false;
 				float   maxSpeedMS = Constants.MAX_SPEED;
 
-				var vehicle = new TrafficVehicle("pippo", model, position, heading, false, maxSpeedMS);
+				var vehicle = new TrafficVehicle("pippo", model, position, heading, onStreet, maxSpeedMS);
 
 				vehicle.Timeline.Add(new TrafficVehicle.Keyframe
 				{
@@ -250,7 +261,7 @@ namespace GTSim
 			cameraFOV      = fovY;
 		}
 
-		protected void InitializeClearWorld()
+		public static void InitializeClearWorld()
 		{
 			Function.Call(Hash.ADD_SCENARIO_BLOCKING_AREA, -10000.0f, -10000.0f, -1000.0f, 10000.0f, 10000.0f, 1000.0f, 0, 1, 1, 1);
 			Function.Call(Hash.SET_CREATE_RANDOM_COPS, false);
@@ -278,7 +289,7 @@ namespace GTSim
 			}
 		}
 
-		protected void UpdateClearWorld()
+		public static void UpdateClearWorld()
 		{
 			Function.Call(Hash.SET_VEHICLE_POPULATION_BUDGET, 0);
 			Function.Call(Hash.SET_PED_POPULATION_BUDGET, 0);

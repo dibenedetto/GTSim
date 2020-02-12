@@ -154,15 +154,15 @@ namespace GTSim
 				}
 			}
 
-			actionValue /= (speedKeepFactor + speedAccelerateFactor + speedBrakeFactor + steerCenterFactor + steerLeftFactor + steerRightFactor);
+			//actionValue /= (speedKeepFactor + speedAccelerateFactor + speedBrakeFactor + steerCenterFactor + steerLeftFactor + steerRightFactor);
 
 			traffic.Update();
 		}
 
 		protected override float GetReward()
 		{
-			const float actionFactor = -0.1f;
-			const float damageFactor = -1.0f;
+			const float actionFactor = -   1.0f;
+			const float damageFactor = - 100.0f;
 
 			float damageValue = traffic.Damage;
 			float reward      = actionFactor * actionValue + damageFactor * damageValue;
