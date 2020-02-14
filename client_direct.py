@@ -91,35 +91,17 @@ class ZGTEnvironment(zp.Environment):
 	def close(self):
 		return self._env.close()
 
-exe = { 'Data': [ 1.0 ] }
-nop = None
-
 env = ZGTEnvironment(address='127.0.0.1', port=8086)
 
-'''
 for i in range(1):
-	result = env.reset()
-	done   = result['Data']['Terminated']
+	state = env.reset()
+	done  = False
 
-	action = {
-		'Values': [
-			nop,
-			nop,
-			exe,
-			nop,
-			nop,
-			nop,
-			nop,
-			nop,
-			nop
-		]
-	}
+	actions = [7]
 
 	while not done:
 		env.render()
-		result = env.step(action)
-		done   = result['Data']['Terminated']
-'''
-result = env.reset()
+		result = env.step(actions=actions)
+		done   = result.done
 
 env.close()
