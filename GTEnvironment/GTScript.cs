@@ -79,7 +79,7 @@ public abstract class GTScript : Script
 				var elapsed = (now - pingTime).TotalSeconds;
 				if (elapsed > respondToPingTime)
 				{
-					File.AppendAllText("sbuthre.txt", "ping not answered\n");
+					//File.AppendAllText("sbuthre.txt", "ping not answered\n");
 					ApplyQuit();
 				}
 			}
