@@ -48,6 +48,7 @@ class ZGTEnvironment(zp.Environment):
 
 	def _add_frame(self, result):
 		image = result['Data']['NextState']['Values'][0]['Image'][0]
+		#image.save('frame.png')
 		frame = np.array(image, dtype=np.uint8).astype(np.float32) * (2.0 / 255.0) - 1.0
 		self._frames = np.concatenate((self._frames[:, :, 3:], frame), axis=2)
 
@@ -97,7 +98,7 @@ for i in range(1):
 	state = env.reset()
 	done  = False
 
-	actions = [7]
+	actions = [0]
 
 	while not done:
 		env.render()
