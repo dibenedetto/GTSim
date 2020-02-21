@@ -3,6 +3,7 @@ from   tensorflow.keras.layers         import Conv2D, Dense, Flatten
 from   tensorflow.keras.optimizers     import RMSprop, Adam
 
 import numpy                as np
+import h5py
 import matplotlib.pyplot    as plt
 import matplotlib.animation as animation
 
@@ -12,10 +13,13 @@ from   zoopy                import *
 import os
 #os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
+import glob
+import re
+
 import tensorflow as tf
 
 print(tf.compat.v1.test.is_gpu_available())
-	
+
 '''
 actions:
 	0 = "speed-keep",
@@ -59,6 +63,7 @@ class ZGTEnvironment(Environment):
 
 	def _add_frame(self, result):
 		image = result['Data']['NextState']['Values'][0]['Image'][0]
+		#image.save('image.png')
 		frame = np.array(image, dtype=np.uint8).astype(np.float32) * (2.0 / 255.0) - 1.0
 		self._frames = np.concatenate((self._frames[:, :, 3:], frame), axis=2)
 
@@ -103,10 +108,10 @@ class ZGTEnvironment(Environment):
 def keras_model_build(parameters):
 	model = Sequential()
 	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu', input_shape=parameters['state_size']))
-	#model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
-	#model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
+	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
+	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
 	model.add(Flatten())
-	#model.add(Dense(16, activation='relu'))
+	model.add(Dense(16, activation='relu'))
 	model.add(Dense(parameters['action_size'], activation='softmax'))
 
 	learning_rate = 0.001
@@ -126,24 +131,51 @@ parameters = {
 
 agent = keras_dqn_agent(keras_model_build, parameters=parameters)
 
-'''
+
 episodes  = []
 rewards   = []
 means     = []
 acc_mean  = 0.0
 acc_count = 0
 
+
 fig = plt.figure()
 ax1 = fig.add_subplot(1, 1, 1)
 plt.xlabel('episode')
 plt.ylabel('reward')
 
+
 def animate(frame):
+	global ax1
+	global episodes
+	global rewards
+	global means
 	ax1.clear()
 	ax1.plot(episodes, rewards, color='orange')
 	ax1.plot(episodes, means  , color='blue'  )
 
 class Callbacks(EventListener):
+	def begin(self, environment=None, agents=None, episodes=None, listeners=None):
+		global agent
+		self._base = 0
+		saved = glob.glob('agent_*.h5')
+		if len(saved) <= 0:
+			return
+		nmax  = 0
+		index = 0
+		for i in range(len(saved)):
+			match = re.match(r'(.*)agent_(.*).h5', saved[i], 0)
+			num   = int(match.group(2))
+			if num > nmax:
+				nmax  = num
+				index = i
+		self._base = nmax
+		agent.load(saved[index])
+
+	def end(self):
+		global agent
+		agent.save('agent_end.h5')
+
 	def episode_begin(self, episode):
 		return
 		print('episode_begin          : ' + str(episode))
@@ -162,6 +194,7 @@ class Callbacks(EventListener):
 		global means
 		global acc_mean
 		global acc_count
+		global agent
 
 		#print('episode_end            : ' + str(episode))
 
@@ -177,10 +210,10 @@ class Callbacks(EventListener):
 		acc_mean += rewards[-1]
 		means.append(acc_mean / acc_count)
 
+		if episode % 10 == 0:
+			agent.save('agent_' + str(self._base + episode) + '.h5')
+
 ani = animation.FuncAnimation(fig, animate, interval=1000)
 plt.show(block=False)
 
 simulate(environment=env, agents=[agent], episodes=1000, listeners=[Callbacks()], disable_render=False)
-'''
-
-simulate(environment=env, agents=[agent], episodes=1000, disable_render=False)

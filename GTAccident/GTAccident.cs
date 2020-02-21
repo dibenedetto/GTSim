@@ -161,8 +161,8 @@ namespace GTSim
 
 		protected override float GetReward()
 		{
-			const float actionFactor = -   1.0f;
-			const float damageFactor = - 100.0f;
+			const float actionFactor = -    1.0f;
+			const float damageFactor = - 1000.0f;
 
 			float damageValue = traffic.Damage;
 			float reward      = actionFactor * actionValue + damageFactor * damageValue;

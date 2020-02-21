@@ -69,7 +69,7 @@ public abstract class GTScript : Script
 		var message = (Dictionary<string, object>)(ReceiveMessage());
 		if (message == null)
 		{
-			const double sendPingTime      = 1000.0;
+			const double sendPingTime      = 100.0;
 			const double respondToPingTime = 10.0;
 
 			var now = DateTime.Now;

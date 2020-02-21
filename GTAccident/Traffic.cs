@@ -78,8 +78,8 @@ namespace GTSim
 				float   distanceMin = 20.0f;
 				float   distanceMax = distanceMin + 30.0f;
 				float   distance    = distanceMin + (distanceMax - distanceMin) * ((float)(rand.NextDouble()));
-				float   maxDrift    = 4.0f;
-				float   drift       = -maxDrift + (2.0f * maxDrift * ((float)(rand.NextDouble())));
+				float   maxDrift    = 2.0f;
+				float   drift       = -maxDrift * ((float)(rand.NextDouble()));
 
 				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * distance + DrivingVehicle.Vehicle.RightVector * drift;
 				float   heading    = DrivingVehicle.Heading + 180.0f;
