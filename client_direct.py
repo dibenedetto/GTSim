@@ -58,6 +58,9 @@ class ZGTEnvironment(zp.Environment):
 	def action_size(self):
 		return self._action_size
 
+	def seed(self, n):
+		pass
+
 	def reset(self, episode=None):
 		result = self._env.reset()
 		self._add_frame(result)

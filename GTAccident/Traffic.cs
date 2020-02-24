@@ -59,6 +59,8 @@ namespace GTSim
 
 			InitializeClearWorld();
 
+			World.CurrentTimeOfDay = new TimeSpan(12, 0, 0);
+
 			//if (false)
 			{
 				//Vector3 position   = Game.Player.Character.Position;
