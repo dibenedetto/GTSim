@@ -69,26 +69,29 @@ public abstract class GTScript : Script
 		var message = (Dictionary<string, object>)(ReceiveMessage());
 		if (message == null)
 		{
-			const double sendPingTime      = 100.0;
-			const double respondToPingTime = 10.0;
-
-			var now = DateTime.Now;
-
-			if (pingSent)
+			if (false)
 			{
-				var elapsed = (now - pingTime).TotalSeconds;
-				if (elapsed > respondToPingTime)
+				const double sendPingTime      = 100.0;
+				const double respondToPingTime = 10.0;
+
+				var now = DateTime.Now;
+
+				if (pingSent)
 				{
-					//File.AppendAllText("sbuthre.txt", "ping not answered\n");
-					ApplyQuit();
+					var elapsed = (now - pingTime).TotalSeconds;
+					if (elapsed > respondToPingTime)
+					{
+						//File.AppendAllText("sbuthre.txt", "ping not answered\n");
+						ApplyQuit();
+					}
 				}
-			}
-			else
-			{
-				var elapsed = (now - lastMessageTime).TotalSeconds;
-				if (elapsed > sendPingTime)
+				else
 				{
-					SendPing();
+					var elapsed = (now - lastMessageTime).TotalSeconds;
+					if (elapsed > sendPingTime)
+					{
+						SendPing();
+					}
 				}
 			}
 
@@ -262,6 +265,7 @@ public abstract class GTScript : Script
 		{
 			if (!awaitingRead.IsCanceled && !awaitingRead.IsFaulted)
 			{
+				//File.AppendAllText("sbuthre.txt", "***********************\n");
 				int len = awaitingRead.Result;
 				awaitingRead = null;
 
@@ -270,21 +274,21 @@ public abstract class GTScript : Script
 				string[] spearator = { "}{" };
 				string[] strlist   = str.Split(spearator, StringSplitOptions.RemoveEmptyEntries);
 
-				//File.AppendAllText("sbuthre.txt", "json-all: " + str + "\n");
-				if (strlist.Length > 1)
+				if ((strlist != null) && (strlist.Length > 0))
 				{
-					strlist[0] = strlist[0] + "}";
-					for (int i=1; i<(strlist.Length-1); ++i)
+					if (strlist.Length > 1)
 					{
-						receiveList.Add("{" + strlist[i] + "}");
+						strlist[0] = strlist[0] + "}";
+						for (int i=1; i<(strlist.Length-1); ++i)
+						{
+							receiveList.Add("{" + strlist[i] + "}");
+						}
+						receiveList.Add("{" + strlist[strlist.Length - 1]);
 					}
-					receiveList.Add("{" + strlist[strlist.Length - 1]);
-				}
 
-				//var    result = JsonSerializer.Deserialize<Dictionary<string, object>>(str);
-				var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(strlist[0]);
-				
-				return result;
+					var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(strlist[0]);
+					return result;
+				}
 			}
 
 			awaitingRead = null;
@@ -324,6 +328,7 @@ public abstract class GTScript : Script
 		pingSent = false;
 		stream   = null;
 		client   = null;
+		awaitingClient = null;
 		environment.Restart();
 	}
 
@@ -356,8 +361,11 @@ public abstract class GTScript : Script
 
 		string       str = JsonConvert.SerializeObject(action);
 		GTSim.Action act = JsonConvert.DeserializeObject<GTSim.Action>(str);
-		object result = environment.Step(act);
-
+		Result result = environment.Step(act);
+		if (result == null)
+		{
+			File.AppendAllText("sbuthre.txt", "null result!\n");
+		}
 		return MakeMessage("Step", result);
 	}
 }

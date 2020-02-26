@@ -113,10 +113,11 @@ namespace GTSim
 			}
 
 			result    = DoStep(action);
-			resetDone = !result.Terminated && !result.Aborted;
 
 			if (result != null)
 			{
+				resetDone = !result.Terminated && !result.Aborted;
+
 				for (int i=0; i<stateDescriptors.Count; ++i)
 				{
 					Normalize(stateDescriptors[i], result.NextState.Values[i]);
