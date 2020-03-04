@@ -133,6 +133,12 @@ public abstract class GTScript : Script
 				}
 				break;
 
+			case "Seed":
+				{
+					ApplySeed(data);
+				}
+				break;
+
 			case "Reset":
 				{
 					result = ApplyReset();
@@ -348,6 +354,14 @@ public abstract class GTScript : Script
 		return MakeMessage("Explain", result);
 	}
 
+	private object ApplySeed(object data)
+	{
+		//Dictionary<string, object> dict = (Dictionary<string, object>)data;
+		//int n = (int)(dict["n"]);
+		environment.Seed(DateTime.Now.Second);
+		return null;
+	}
+
 	private object ApplyReset()
 	{
 		//File.AppendAllText("sbuthre.txt", "apply reset\n");
@@ -362,10 +376,6 @@ public abstract class GTScript : Script
 		string       str = JsonConvert.SerializeObject(action);
 		GTSim.Action act = JsonConvert.DeserializeObject<GTSim.Action>(str);
 		Result result = environment.Step(act);
-		if (result == null)
-		{
-			File.AppendAllText("sbuthre.txt", "null result!\n");
-		}
 		return MakeMessage("Step", result);
 	}
 }

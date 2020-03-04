@@ -15,11 +15,11 @@ namespace GTSim
 		DrivingVehicle       drivingVehicle  = null;
 		List<TrafficVehicle> trafficVehicles = new List<TrafficVehicle>();
 		bool                 started         = false;
-		Random               rand            = null;
+		Random               rand            = new Random(12345);
 
-		public Traffic(Random rand)
+		public Traffic()
 		{
-			this.rand = (rand != null) ? (rand) : (new Random(12345));
+			;
 		}
 
 		public void Clear()
@@ -51,6 +51,11 @@ namespace GTSim
 		public List<TrafficVehicle> TrafficVehicles
 		{
 			get { return trafficVehicles; }
+		}
+
+		public void Seed(int n)
+		{
+			rand = new Random(n);
 		}
 
 		public bool InitializeRandomEpisode()
