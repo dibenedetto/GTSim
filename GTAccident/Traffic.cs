@@ -70,8 +70,10 @@ namespace GTSim
 			{
 				//Vector3 position   = Game.Player.Character.Position;
 				//float   heading    = Game.Player.Character.Heading;
-				Vector3 position   = new Vector3(-1306.281f, -2875.058f, 13.42174f);
-				float   heading    = 58.0f;
+				//Vector3 position   = new Vector3(-1306.281f, -2875.058f, 13.42174f);
+				//float   heading    = 58.0f;
+				Vector3 position   = new Vector3(-1172.419f, -1346.944f, 2.0f);
+				float   heading    = 115.0f;
 				Model   model      = VehicleHash.Futo;
 				bool    onStreet   = false;
 				float   maxSpeedMS = Constants.MAX_SPEED;
@@ -87,6 +89,9 @@ namespace GTSim
 				float   distance    = distanceMin + (distanceMax - distanceMin) * ((float)(rand.NextDouble()));
 				float   maxDrift    = 2.0f;
 				float   drift       = -maxDrift * ((float)(rand.NextDouble()));
+
+				distance = 30.0f;
+				drift    = 0.0f;
 
 				Vector3 position   = DrivingVehicle.Position + DrivingVehicle.Vehicle.ForwardVector * distance + DrivingVehicle.Vehicle.RightVector * drift;
 				float   heading    = DrivingVehicle.Heading + 180.0f;

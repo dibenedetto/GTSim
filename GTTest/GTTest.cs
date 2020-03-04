@@ -12,7 +12,7 @@ using GTSim;
 
 public class GTTest : GTScript
 {
-	public GTTest() : base(new GTAccident(5.0f, 10.0f, 1.0f, 1, 128, 96), 8086)
+	public GTTest() : base(new GTAccident(5.0f, 10.0f, 1.0f, 1, 128, 128), 8086)
 	{
 		//this.Tick  += OnTick;
 		//this.KeyUp += OnKeyUp;
@@ -84,8 +84,8 @@ public class GTTest : GTScript
 					{
 						//Vector3 position   = Game.Player.Character.Position;
 						//float   heading    = Game.Player.Character.Heading;
-						Vector3 position = new Vector3(-1306.281f, -2875.058f, 13.42174f);
-						float   heading = 58.0f;
+						Vector3 position = new Vector3(-1172.419f, -1346.944f, 2.0f);
+						float   heading = 115.0f;
 						Model   model = VehicleHash.Futo;
 						bool    onStreet = false;
 						float   maxSpeedMS = Constants.MAX_SPEED;
@@ -102,7 +102,9 @@ public class GTTest : GTScript
 						float distance = maxDistance * 1.0f;
 						float maxDrift = 4.0f;
 						float drift = -maxDrift + (2.0f * maxDrift * ((float)(rand.NextDouble())));
-						drift = maxDrift;
+
+						distance = 30.0f;
+						drift    = 0.0f;
 
 						Vector3 position = vehicle.Position + vehicle.Vehicle.ForwardVector * distance + vehicle.Vehicle.RightVector * drift;
 						float heading = vehicle.Heading + 180.0f;
@@ -112,6 +114,13 @@ public class GTTest : GTScript
 
 						var tv = new TrafficVehicle("pippo", model, position, heading, onStreet, maxSpeedMS);
 					}
+				}
+				break;
+
+			case Keys.NumPad1:
+				{
+					Vector3 position = Game.Player.Character.Position;
+					File.AppendAllText("sbuthre.txt", "position: " + position.X + " -- " + position.Y + " -- " + position.Z + "\n");
 				}
 				break;
 

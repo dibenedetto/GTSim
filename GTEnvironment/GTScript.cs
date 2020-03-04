@@ -127,15 +127,15 @@ public abstract class GTScript : Script
 				}
 				break;
 
-			case "Explain":
-				{
-					result = ApplyExplain();
-				}
-				break;
-
 			case "Seed":
 				{
 					ApplySeed(data);
+				}
+				break;
+
+			case "Explain":
+				{
+					result = ApplyExplain();
 				}
 				break;
 
