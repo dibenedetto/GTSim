@@ -12,7 +12,7 @@ namespace GTSim
 		private float   actionValue = 0.0f;
 		private Traffic traffic     = null;
 
-		public GTAccident(float maxSecondsPerEpisode = 10.0f, float framesPerSecond = 10.0f, float timeScale = 1.0f, int recorderFramesCount = 4, int frameWidth = 320, int frameHeight = 240, Random rand = null)
+		public GTAccident(float maxSecondsPerEpisode = 10.0f, float framesPerSecond = 10.0f, float timeScale = 1.0f, int recorderFramesCount = 4, int frameWidth = 320, int frameHeight = 240)
 			: base(maxSecondsPerEpisode, framesPerSecond, timeScale, recorderFramesCount, frameWidth, frameHeight)
 		{
 			// states
@@ -78,7 +78,12 @@ namespace GTSim
 			});
 			/////////////////////////////////////////////////////
 
-			traffic = new Traffic(rand);
+			traffic = new Traffic();
+		}
+
+		public override void Seed(int n)
+		{
+			traffic.Seed(n);
 		}
 
 		protected override void DoRestart()

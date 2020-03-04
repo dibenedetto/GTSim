@@ -127,6 +127,12 @@ public abstract class GTScript : Script
 				}
 				break;
 
+			case "Seed":
+				{
+					ApplySeed(data);
+				}
+				break;
+
 			case "Explain":
 				{
 					result = ApplyExplain();
@@ -338,6 +344,11 @@ public abstract class GTScript : Script
 		{
 			pingSent = false;
 		}
+	}
+
+	private void ApplySeed(object data)
+	{
+		environment.Seed(DateTime.Now.Second);
 	}
 
 	private object ApplyExplain()

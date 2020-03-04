@@ -58,6 +58,11 @@ namespace GTSim
 			get { return result; }
 		}
 
+		public virtual void Seed(int n)
+		{
+			;
+		}
+
 		public void Restart()
 		{
 			result              = null;
