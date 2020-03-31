@@ -13,7 +13,7 @@ from   PIL                  import Image
 
 GTSIM_DEFAULT_ADDRESS     = '127.0.0.1'
 GTSIM_DEFAULT_PORT        = 8086
-GTSIM_DEFAULT_BUFFER_SIZE = 4 * 1024 * 1024
+GTSIM_DEFAULT_BUFFER_SIZE = 16 * 1024 * 1024
 
 class GTEnvironment():
 	def __init__(self, address=GTSIM_DEFAULT_ADDRESS, port=GTSIM_DEFAULT_PORT, buffer_size=GTSIM_DEFAULT_BUFFER_SIZE):
@@ -21,9 +21,11 @@ class GTEnvironment():
 
 		def send_thread(sock_comm, buffer_size, q):
 			sock_quit = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			sock_quit.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			sock_quit.connect((GTSIM_LOCAL_ADDRESS, port + 1))
 
 			sock_get = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			sock_get.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			sock_get.connect((GTSIM_LOCAL_ADDRESS, port + 2))
 
 			while True:
@@ -44,6 +46,7 @@ class GTEnvironment():
 
 		def recv_thread(sock_comm, buffer_size, q):
 			sock_quit = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			sock_quit.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			sock_quit.connect((GTSIM_LOCAL_ADDRESS, port + 3))
 
 			pong = b'{"Code":"Pong", "Data":null}'
@@ -80,6 +83,7 @@ class GTEnvironment():
 
 			info[port] = None
 			sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			sock.bind((GTSIM_LOCAL_ADDRESS, port))
 			sock.listen()
 			task = threading.Thread(target=sock_accept, args=(sock, info, port,))
@@ -87,6 +91,7 @@ class GTEnvironment():
 			return sock
 
 		sock_comm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock_comm.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		sock_comm.connect((address, port + 0))
 
 		info = { }
@@ -124,7 +129,7 @@ class GTEnvironment():
 		self._acquire_frame_size()
 
 	def _acquire_frame_size(self):
-		self.frameSize = [ 320, 240 ]
+		self.frameSize = [320, 240]
 		expl  = self.explain()
 		descs = expl['Data']['StateDescriptors']
 		for i in range(len(descs)):
@@ -142,6 +147,7 @@ class GTEnvironment():
 		frames     = result['Data']['NextState']['Values'][0]['Image']
 		frames[0]  = Image.open(io.BytesIO(base64.b64decode(frames[0])))
 		self.image = frames[0]
+		#self.image.save('test.png')
 
 	def _send_message(self, code, data):
 		message = {
@@ -150,40 +156,6 @@ class GTEnvironment():
 		}
 		self.q_send.put(message)
 		self.sock_get_send.send(b'0')
-
-	def close(self):
-		if not self.open:
-			return False
-
-		self._send_message('Quit', None)
-
-		self.sock_quit_send.send(b'0')
-		self.sock_quit_recv.send(b'0')
-
-		self.send.join()
-		self.recv.join()
-
-		self.sock_comm      .close()
-		self.sock_quit_send .close()
-		self.sock_get_send  .close()
-		self.q_send         = None
-		self.send           = None
-		self.sock_quit_recv .close()
-		self.q_recv         = None
-		self.recv           = None
-		self.open           = False
-		self.image          = None
-		self.fig            = None
-		self.img            = None
-
-		return True
-
-	def explain(self):
-		if not self.open:
-			return None
-		self._send_message('Explain', None)
-		message = self.q_recv.get()
-		return message
 
 	def frame_count(self):
 		return 1
@@ -199,6 +171,20 @@ class GTEnvironment():
 
 	def last_frame_image(self):
 		return self.image
+
+	def seed(self, n):
+		if not self.open:
+			return False
+		seed = { 'n': n }
+		self._send_message('Seed', seed)
+		return True
+
+	def explain(self):
+		if not self.open:
+			return None
+		self._send_message('Explain', None)
+		message = self.q_recv.get()
+		return message
 
 	def reset(self):
 		if not self.open:
@@ -229,5 +215,32 @@ class GTEnvironment():
 		self.img.set_array(self.image)
 		self.fig.canvas.draw()
 		plt.pause(0.000001)
+
+		return True
+
+	def close(self):
+		if not self.open:
+			return False
+
+		self._send_message('Quit', None)
+
+		self.sock_quit_send.send(b'0')
+		self.sock_quit_recv.send(b'0')
+
+		self.send.join()
+		self.recv.join()
+
+		self.sock_comm      .close()
+		self.sock_quit_send .close()
+		self.sock_get_send  .close()
+		self.q_send         = None
+		self.send           = None
+		self.sock_quit_recv .close()
+		self.q_recv         = None
+		self.recv           = None
+		self.open           = False
+		self.image          = None
+		self.fig            = None
+		self.img            = None
 
 		return True

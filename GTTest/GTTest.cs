@@ -18,44 +18,43 @@ public class GTTest : GTScript
 		//this.KeyUp += OnKeyUp;
 	}
 
-	DrivingVehicle vehicle = null;
+	DrivingVehicle dv = null;
+	TrafficVehicle tv = null;
 
 	private void OnTick(object sender, EventArgs e)
 	{
-		if (Game.IsKeyPressed(Keys.NumPad9))
-		{
-			File.AppendAllText("sbuthre.txt", "position: " + Game.Player.Character.Position + "\n");
-		}
+		if (dv == null) return;
 
-		if (vehicle == null) return;
-
-		Traffic.UpdateClearWorld();
-
-		vehicle.Update(TimeController.Now);
+		dv.Update(TimeController.Now);
+		tv.Update(TimeController.Now);
 
 		//File.AppendAllText("sbuthre.txt", "speed : " + vehicle.Speed  + "\n");
 		//File.AppendAllText("sbuthre.txt", "speed2: " + vehicle.Speed2 + "\n");
 
 		if (Game.IsKeyPressed(Keys.NumPad8))
 		{
-			vehicle.Accelerate(1.0f);
+			dv.Accelerate(1.0f);
 		}
 		else if (Game.IsKeyPressed(Keys.NumPad5))
 		{
-			vehicle.Brake(1.0f);
+			dv.Brake(1.0f);
 		}
 		else
 		{
-			//vehicle.Keep();
+			dv.Keep();
 		}
 
 		if (Game.IsKeyPressed(Keys.NumPad4))
 		{
-			vehicle.Steer(-1.0f);
+			dv.Steer(-1.0f);
 		}
 		else if (Game.IsKeyPressed(Keys.NumPad6))
 		{
-			vehicle.Steer(+1.0f);
+			dv.Steer(+1.0f);
+		}
+		else
+		{
+			dv.Steer(0.0f);
 		}
 	}
 
@@ -90,8 +89,7 @@ public class GTTest : GTScript
 						bool    onStreet = false;
 						float   maxSpeedMS = Constants.MAX_SPEED;
 
-						var dv = new DrivingVehicle("pluto", model, position, heading, onStreet, maxSpeedMS);
-						vehicle = dv;
+						dv = new DrivingVehicle("pluto", model, position, heading, onStreet, maxSpeedMS);
 					}
 
 					var rand = new Random();
@@ -106,13 +104,13 @@ public class GTTest : GTScript
 						distance = 30.0f;
 						drift    = 0.0f;
 
-						Vector3 position = vehicle.Position + vehicle.Vehicle.ForwardVector * distance + vehicle.Vehicle.RightVector * drift;
-						float heading = vehicle.Heading + 180.0f;
+						Vector3 position = dv.Position + dv.Vehicle.ForwardVector * distance + dv.Vehicle.RightVector * drift;
+						float heading = dv.Heading + 180.0f;
 						Model model = VehicleHash.Futo;
 						bool onStreet = false;
 						float maxSpeedMS = Constants.MAX_SPEED;
 
-						var tv = new TrafficVehicle("pippo", model, position, heading, onStreet, maxSpeedMS);
+						tv = new TrafficVehicle("pippo", model, position, heading, onStreet, maxSpeedMS);
 					}
 				}
 				break;

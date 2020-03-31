@@ -83,7 +83,13 @@ class ZGTEnvironment(Environment):
 		values = [ None, None, None, None, None, None ]
 		action = { 'Values': values }
 
-		speed, steer  = self._table[actions[0]]
+		a = int(actions[0])
+		if a < 0:
+			a = 0
+		if a >= len(self._table):
+			a = len(self._table) - 1
+
+		speed, steer  = self._table[a]
 
 		values[speed] = apply
 		values[steer] = apply
@@ -107,11 +113,12 @@ class ZGTEnvironment(Environment):
 
 def keras_model_build(parameters):
 	model = Sequential()
-	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu', input_shape=parameters['state_size']))
+	model.add(Conv2D(64, kernel_size=3, strides=1, activation='relu', input_shape=parameters['state_size']))
+	model.add(Conv2D(32, kernel_size=3, strides=1, activation='relu'))
 	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
-	model.add(Conv2D(16, kernel_size=3, strides=1, activation='relu'))
+	model.add(Conv2D( 8, kernel_size=3, strides=1, activation='relu'))
 	model.add(Flatten())
-	model.add(Dense(16, activation='relu'))
+	model.add(Dense(32, activation='relu'))
 	model.add(Dense(parameters['action_size'], activation='softmax'))
 
 	learning_rate = 0.001
@@ -122,8 +129,7 @@ def keras_model_build(parameters):
 	return model
 
 
-#env = ZGTEnvironment(address='146.48.87.139', port=8086)
-env = ZGTEnvironment(address='127.0.0.1', port=8086)
+env = ZGTEnvironment(address='146.48.85.87', port=8086)
 parameters = {
 	'state_size'  : env.state_size  (),
 	'action_size' : env.action_size ()
@@ -131,7 +137,53 @@ parameters = {
 
 agent = keras_dqn_agent(keras_model_build, parameters=parameters)
 
+class Callbacks(EventListener):
+	def begin(self, environment=None, agents=None, episodes=None, listeners=None):
+		global agent
+		self._base = 0
+		self._base = 0
+		saved = glob.glob('agent_*.h5')
+		if len(saved) <= 0:
+			return
+		nmax  = 0
+		index = 0
+		for i in range(len(saved)):
+			match = re.match(r'(.*)agent_(.*).h5', saved[i], 0)
+			num   = int(match.group(2))
+			if num > nmax:
+				nmax  = num
+				index = i
+		self._base = nmax
+		agent.load(saved[index])
+		print('loaded ' + saved[index])
 
+	def end(self):
+		global agent
+		agent.save('end_agent.h5')
+
+	def episode_begin(self, episode):
+		return
+		print('episode_begin          : ' + str(episode))
+
+	def episode_step_begin(self, episode, step):
+		return
+		print('    episode_step_begin : ' + str(episode) + ' -- ' + str(step))
+
+	def episode_step_end(self, episode, step):
+		return
+		print('    episode_step_end   : ' + str(episode) + ' -- ' + str(step))
+
+	def episode_end(self, episode):
+		global agent
+
+		#print('episode_end            : ' + str(episode))
+
+		if episode % 10 == 0:
+			agent.save('agent_' + str(self._base + episode) + '.h5')
+
+simulate(environment=env, agents=[agent], episodes=1000, listeners=[Callbacks()], disable_render=True)
+
+'''
 episodes  = []
 rewards   = []
 means     = []
@@ -217,3 +269,5 @@ ani = animation.FuncAnimation(fig, animate, interval=1000)
 plt.show(block=False)
 
 simulate(environment=env, agents=[agent], episodes=1000, listeners=[Callbacks()], disable_render=False)
+'''
+
