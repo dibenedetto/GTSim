@@ -172,6 +172,11 @@ namespace GTSim
 			float damageValue = traffic.Damage;
 			float reward      = actionFactor * actionValue + damageFactor * damageValue;
 
+			if (this.IsEpisodeTerminated() && (damageValue < 0.0001f))
+			{
+				reward += 1000.0f;
+			}
+
 			return reward;
 		}
 	}
